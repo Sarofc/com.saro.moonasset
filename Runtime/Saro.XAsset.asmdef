@@ -1,0 +1,17 @@
+{
+    "name": "Saro.XAsset",
+    "rootNamespace": "",
+    "references": [
+        "Saro.MGF",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
