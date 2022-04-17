@@ -1,6 +1,9 @@
 # xasset
 
-作为MGF子模块
+![](https://img.shields.io/badge/version-v0.1-green.svg)
+![](https://img.shields.io/badge/license-MIT-blue.svg)
+
+作为[MGF](https://github.com/Sarofc/com.saro.mgf)子模块
 
 ## 特性
 
