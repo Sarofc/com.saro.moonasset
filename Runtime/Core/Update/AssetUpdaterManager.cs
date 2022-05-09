@@ -1,6 +1,6 @@
-﻿using Saro.UI;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using Saro.Net;
+using Saro.UI;
 using Saro.Utility;
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,13 @@ using UnityEngine.Networking;
 namespace Saro.XAsset.Update
 {
     /*
+     * 参考下 addressable 吧，这块逻辑有点杂乱
+     * 
      * TODO
      *
      * 1.还是要校验文件完整性，使用md5
      * 2.custom bundle压缩
+     * 3. 断点续传 逻辑 有误，appendhash后，可以全部用断点续传
      *
      * 0.下载到临时目录的必要性？
      * 1.流程Async化，需要支持 资源开始，暂停，取消 接口
@@ -150,10 +153,9 @@ namespace Saro.XAsset.Update
             }
             else if (m_Step == EStep.UpdateSuccess)
             {
-                // TODO 这个需要考虑
-                //XAssetManager.Current.ClearAssetReference();
-
                 INFO("Update Finish...");
+
+                XAssetManager.Current.ClearAssetReference(true);
             }
         }
 
@@ -251,7 +253,8 @@ namespace Saro.XAsset.Update
                     SavePath = XAssetConfig.GetLocalAssetURL(asset.Name),
                     Size = asset.Size,
                     Hash = asset.Hash,
-                    UseRESUME = m_ManifestVersionSame, // 版本号一致时，才使用断点续传
+                    //UseRESUME = m_ManifestVersionSame, // 版本号一致时，才使用断点续传。！！！！此逻辑有误
+                    UseRESUME = true, // append hash后，可以直接使用断点续传，最坏的情况，就是下完校验失败，重新下载而已
                 };
                 downloadInfos.Add(info);
             }
@@ -320,7 +323,7 @@ namespace Saro.XAsset.Update
             return true;
         }
 
-        private List<UniTask<bool>> m_CompressTasks = new List<UniTask<bool>>();
+        //private List<UniTask<bool>> m_CompressTasks = new List<UniTask<bool>>();
         private void VerifyCallback(IDownloadAgent agent)
         {
             //ERROR($"!!! VerifyCallback: {obj.Info.DownloadUrl}");

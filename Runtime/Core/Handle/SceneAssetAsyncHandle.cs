@@ -8,8 +8,8 @@ namespace Saro.XAsset
     {
         private AsyncOperation m_AsyncOperation;
 
-        public SceneAssetAsyncHandle(string path, bool addictive)
-            : base(path, addictive)
+        public SceneAssetAsyncHandle(string path, bool additive)
+            : base(path, additive)
         {
         }
 
@@ -113,9 +113,9 @@ namespace Saro.XAsset
             }
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
-            base.Unload();
+            base.Unload(unloadAllObjects);
             m_AsyncOperation = null;
         }
     }

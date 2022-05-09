@@ -43,6 +43,9 @@ namespace Saro.XAsset
                     return true;
             }
 
+            if (remoteAssets == null)
+                ERROR($"TryGetAssetPath failed. AssetName: {assetName}");
+
             return false;
         }
     }

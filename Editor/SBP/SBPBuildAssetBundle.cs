@@ -70,8 +70,8 @@ namespace Saro.XAsset.Build
             buildTasks.Add(new CalculateAssetDependencyData());
             buildTasks.Add(new StripUnusedSpriteSources());
             buildTasks.Add(new CreateBuiltInResourcesBundle(
-                "unitybuiltindata" + XAssetConfig.k_AssetExtension,
-                "unitybuiltinshader" + XAssetConfig.k_AssetExtension));
+                "builtindata" + XAssetConfig.k_AssetExtension,
+                "builtinshader" + XAssetConfig.k_AssetExtension));
             //buildTasks.Add(new PostDependencyCallback());
 
             // Packing

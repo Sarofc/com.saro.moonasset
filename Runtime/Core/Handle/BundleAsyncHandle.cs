@@ -68,11 +68,11 @@ namespace Saro.XAsset
             LoadState = ELoadState.LoadAssetBundle;
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
             m_Request = null;
             LoadState = ELoadState.Unload;
-            base.Unload();
+            base.Unload(unloadAllObjects);
         }
     }
 }

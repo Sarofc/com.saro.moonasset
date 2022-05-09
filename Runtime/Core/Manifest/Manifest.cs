@@ -67,37 +67,38 @@ namespace Saro.XAsset
 
         #endregion
 
-        #region CustomAssets
+        #region RawBundles
 
-        [Header("CustomAssets")]
+        [Header("RawBundles")]
 
-        public string[] customDirs = new string[0];
+        public string[] rawDirs = new string[0];
 
         /// <summary>
         /// 非ab的其他自定义资源，例如数据表什么的
         /// </summary>
-        public AssetRef[] customAssets = new AssetRef[0];
+        public AssetRef[] rawAssets = new AssetRef[0];
 
         /// <summary>
         /// 非ab的其他自定义资源bundle
         /// <code>用FileIO来读取</code>
         /// <code>这是使用自定义构建来处理吧</code>
         /// </summary>
-        public CustomBundleRef[] customBundles = new CustomBundleRef[0];
+        public RawBundleRef[] rawBundles = new RawBundleRef[0];
 
-        public IReadOnlyDictionary<string, CustomBundleRef> CustomAssetMap => m_CustomAssetMap;
-        private Dictionary<string, CustomBundleRef> m_CustomAssetMap;
+        public IReadOnlyDictionary<string, RawBundleRef> RawAssetMap => m_RawAssetMap;
+        private Dictionary<string, RawBundleRef> m_RawAssetMap;
 
         /// <summary>
         /// 用于appendhash后，通过简易名称获取完整名称，eg. cards -> cards_xxxxxxxxxxx
+        /// <code>TODO 不够完备，可能会重名</code>
         /// </summary>
         /// <param name="singleName"></param>
         /// <returns></returns>
-        public string GetFullCustomBundleName(string singleName)
+        public string GetFullRawBundleName(string singleName)
         {
-            for (int i = 0; i < customBundles.Length; i++)
+            for (int i = 0; i < rawBundles.Length; i++)
             {
-                var bundle = customBundles[i];
+                var bundle = rawBundles[i];
                 if (bundle.name.StartsWith(singleName))
                 {
                     return bundle.name;
@@ -164,36 +165,36 @@ namespace Saro.XAsset
                 m_BundleToDeps[item.name] = Array.ConvertAll(item.deps, id => bundles[id]);
             }
 
-            // custom bundle
-            if (m_CustomAssetMap != null && customAssets.Length <= m_CustomAssetMap.Count)
+            // raw bundle
+            if (m_RawAssetMap != null && rawAssets.Length <= m_RawAssetMap.Count)
             {
-                m_CustomAssetMap.Clear();
+                m_RawAssetMap.Clear();
             }
             else
             {
-                m_CustomAssetMap = new Dictionary<string, CustomBundleRef>(customAssets.Length);
+                m_RawAssetMap = new Dictionary<string, RawBundleRef>(rawAssets.Length);
             }
-            foreach (var item in customAssets)
+            foreach (var item in rawAssets)
             {
-                var path = string.Format("{0}/{1}", customDirs[item.dir], item.name);
-                if (item.bundle >= 0 && item.bundle < customBundles.Length)
+                var path = string.Format("{0}/{1}", rawDirs[item.dir], item.name);
+                if (item.bundle >= 0 && item.bundle < rawBundles.Length)
                 {
-                    m_CustomAssetMap[path] = customBundles[item.bundle];
+                    m_RawAssetMap[path] = rawBundles[item.bundle];
                 }
                 else
                 {
-                    Log.ERROR(string.Format("{0} custom bundle index {1} not exist.", path, item.bundle));
+                    Log.ERROR(string.Format("{0} raw bundle index {1} not exist.", path, item.bundle));
                 }
             }
 
             // remote assets
-            if (m_RemoteAssets != null && bundles.Length + customBundles.Length <= m_RemoteAssets.Count)
+            if (m_RemoteAssets != null && bundles.Length + rawBundles.Length <= m_RemoteAssets.Count)
             {
                 m_RemoteAssets.Clear();
             }
             else
             {
-                m_RemoteAssets = new Dictionary<string, IRemoteAssets>(bundles.Length + customBundles.Length, StringComparer.OrdinalIgnoreCase);
+                m_RemoteAssets = new Dictionary<string, IRemoteAssets>(bundles.Length + rawBundles.Length, StringComparer.OrdinalIgnoreCase);
             }
 
             for (int i = 0; i < bundles.Length; i++)
@@ -202,10 +203,10 @@ namespace Saro.XAsset
                 m_RemoteAssets.Add(((IRemoteAssets)bundle).Name, bundle);
             }
 
-            for (int i = 0; i < customBundles.Length; i++)
+            for (int i = 0; i < rawBundles.Length; i++)
             {
-                var customBundle = customBundles[i];
-                m_RemoteAssets.Add(((IRemoteAssets)customBundle).Name, customBundle);
+                var rawBundle = rawBundles[i];
+                m_RemoteAssets.Add(((IRemoteAssets)rawBundle).Name, rawBundle);
             }
         }
 
@@ -226,14 +227,14 @@ namespace Saro.XAsset
             this.assets = other.assets;
             this.bundles = other.bundles;
 
-            this.customDirs = other.customDirs;
-            this.customAssets = other.customAssets;
-            this.customBundles = other.customBundles;
+            this.rawDirs = other.rawDirs;
+            this.rawAssets = other.rawAssets;
+            this.rawBundles = other.rawBundles;
 
             this.m_AssetToBundle = other.m_AssetToBundle;
             this.m_BundleToDeps = other.m_BundleToDeps;
 
-            this.m_CustomAssetMap = other.m_CustomAssetMap;
+            this.m_RawAssetMap = other.m_RawAssetMap;
             this.m_RemoteAssets = other.m_RemoteAssets;
 
             var json = JsonUtility.ToJson(this);
@@ -286,51 +287,7 @@ namespace Saro.XAsset
 #endif
         }
 
-        //        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        //        public void AddCustomAssets(IEnumerable<string> assetPaths)
-        //        {
-        //#if UNITY_EDITOR
-        //            foreach (var assetPath in assetPaths)
-        //            {
-        //                AddCustomAsset(assetPath);
-        //            }
-        //#endif
-        //        }
-
-        //        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        //        public void AddCustomAsset(string assetPath)
-        //        {
-        //#if UNITY_EDITOR
-        //            if (!ValidCustomAsset(assetPath)) return;
-
-        //            var fileInfo = new FileInfo(assetPath);
-        //            if (fileInfo.Exists)
-        //            {
-        //                var asset = new CustomBundleRef
-        //                {
-        //                    name = XAssetPath.k_CustomFolder + "/" + fileInfo.Name,
-        //                    size = fileInfo.Length,
-        //                };
-
-
-        //                using (var fs = fileInfo.OpenRead())
-        //                {
-        //                    asset.hash = HashUtility.GetMd5Hash(fs);
-        //                    //Log.ERROR(extraAsset.ToString());
-        //                }
-
-        //                customBundles.Add(asset);
-
-        //                UnityEditor.EditorUtility.SetDirty(this);
-        //            }
-        //            else
-        //            {
-        //                Log.ERROR("File Not Found: " + assetPath);
-        //            }
-        //#endif
-        //        }
-
-        private bool ValidCustomAsset(string path)
+        private bool ValidRawAsset(string path)
         {
             if (path.EndsWith(".dump")) return false;
             if (path.EndsWith(".dump.json")) return false;
@@ -342,20 +299,13 @@ namespace Saro.XAsset
             return true;
         }
 
-        //#if UNITY_EDITOR
-        //        [ContextMenu("Build")]
-        //        public void Build()
-        //        {
-        //            UnityEditor.EditorUtility.SetDirty(this);
-        //            UnityEditor.AssetDatabase.Refresh();
-        //            Build(this);
-        //        }
-        //#endif
-
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         public static void Build(Manifest manifest)
         {
 #if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(manifest);
+            UnityEditor.AssetDatabase.SaveAssets();
+
             var manifestPath = $"{XAssetConfig.k_Editor_DlcOutputPath}/{XAssetConfig.k_ManifestAsset}";
             var manifestJson = JsonUtility.ToJson(manifest);
             File.WriteAllText(manifestPath, manifestJson);

@@ -110,11 +110,11 @@ namespace AssetBundleBrowser.AssetBundleModel
             get { return m_DisplayName; }
         }
         internal string bundleName
-        { get { return System.String.IsNullOrEmpty(m_BundleName) ? "auto" : m_BundleName; } }
+        { get { return string.IsNullOrEmpty(m_BundleName) ? "auto" : m_BundleName; } }
 
         internal Color GetColor()
         {
-            if (System.String.IsNullOrEmpty(m_BundleName))
+            if (string.IsNullOrEmpty(m_BundleName))
                 return Model.k_LightGrey;
             else
                 return Color.white;
@@ -162,7 +162,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                 messages.Add(new MessageSystem.Message(message, MessageType.Warning));
             }
 
-            if (System.String.IsNullOrEmpty(m_BundleName) && m_Parents.Count > 0)
+            if (string.IsNullOrEmpty(m_BundleName) && m_Parents.Count > 0)
             {
                 //TODO - refine the parent list to only include those in the current asset list
                 var message = displayName + "\n" + "Is auto included in bundle(s) due to parent(s): \n";

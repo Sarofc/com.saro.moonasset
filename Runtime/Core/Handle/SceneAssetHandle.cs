@@ -12,12 +12,12 @@ namespace Saro.XAsset
         protected string m_AssetBundleName;
         protected BundleHandle m_Handle;
 
-        public SceneAssetHandle(string path, bool addictive)
+        public SceneAssetHandle(string path, bool additive)
         {
             AssetUrl = path;
             XAssetManager.Current.GetAssetBundleName(path, out m_AssetBundleName);
             m_SceneName = Path.GetFileNameWithoutExtension(AssetUrl);
-            m_LoadSceneMode = addictive ? LoadSceneMode.Additive : LoadSceneMode.Single;
+            m_LoadSceneMode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
         }
 
         public override float Progress
@@ -49,7 +49,7 @@ namespace Saro.XAsset
             }
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
             if (m_Handle != null)
                 m_Handle.DecreaseRefCount();

@@ -57,7 +57,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal BundleNameData(string name) { SetName(name); }
         internal BundleNameData(string path, string name)
         {
-            string finalName = System.String.IsNullOrEmpty(path) ? "" : path + '/';
+            string finalName = string.IsNullOrEmpty(path) ? "" : path + '/';
             finalName += name;
             SetName(finalName);
         }
@@ -71,7 +71,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal void SetBundleName(string bundleName, string variantName)
         {
             string name = bundleName;
-            name += System.String.IsNullOrEmpty(variantName) ? "" : "." + variantName;
+            name += string.IsNullOrEmpty(variantName) ? "" : "." + variantName;
             SetName(name);
         }
         internal string bundleName
@@ -92,7 +92,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             {
                 m_VariantName = value;
                 m_FullNativeName = m_FullBundleName;
-                m_FullNativeName += System.String.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
+                m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
             }
         }
         internal List<string> pathTokens
@@ -166,7 +166,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             }
             m_FullBundleName += m_ShortName;
             m_FullNativeName = m_FullBundleName;
-            m_FullNativeName += System.String.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
+            m_FullNativeName += string.IsNullOrEmpty(m_VariantName) ? "" : "." + m_VariantName;
         }
     }
 
@@ -379,20 +379,20 @@ namespace AssetBundleBrowser.AssetBundleModel
                 }
 
                 var bundleName = Model.GetBundleName(assetName);
-                if (System.String.IsNullOrEmpty(bundleName))
+                if (string.IsNullOrEmpty(bundleName))
                 {
                     ///we get here if the current asset is only added due to being in an explicitly added folder
 
                     var partialPath = assetName;
                     while (
-                        !System.String.IsNullOrEmpty(partialPath) &&
+                        !string.IsNullOrEmpty(partialPath) &&
                         partialPath != "Assets" && partialPath != "Packages" &&
-                        System.String.IsNullOrEmpty(bundleName))
+                        string.IsNullOrEmpty(bundleName))
                     {
                         partialPath = partialPath.Substring(0, partialPath.LastIndexOf('/'));
                         bundleName = Model.GetBundleName(partialPath);
                     }
-                    if (!System.String.IsNullOrEmpty(bundleName))
+                    if (!string.IsNullOrEmpty(bundleName))
                     {
                         var folderAsset = Model.CreateAsset(partialPath, bundleName);
                         folderAsset.isFolder = true;
@@ -511,7 +511,7 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         private void GatherDependencies(AssetInfo asset, string parentBundle = "")
         {
-            if (System.String.IsNullOrEmpty(parentBundle))
+            if (string.IsNullOrEmpty(parentBundle))
                 parentBundle = asset.bundleName;
 
             if (asset == null)
@@ -601,7 +601,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
         {
             RefreshAssetList();
-            string newName = System.String.IsNullOrEmpty(parentName) ? "" : parentName + '/';
+            string newName = string.IsNullOrEmpty(parentName) ? "" : parentName + '/';
             newName += m_Name.shortName;
             if (newName == m_Name.bundleName)
                 return;
@@ -875,7 +875,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         internal virtual bool HandleChildRename(string oldName, string newName)
         {
 
-            if (!System.String.IsNullOrEmpty(newName) && m_Children.ContainsKey(newName))
+            if (!string.IsNullOrEmpty(newName) && m_Children.ContainsKey(newName))
             {
                 Model.LogWarning("Attempting to name an item '" + newName + "' which matches existing name at this level in hierarchy.  If your desire is to merge bundles, drag one on top of the other.");
                 return false;
@@ -885,7 +885,7 @@ namespace AssetBundleBrowser.AssetBundleModel
             if (m_Children.TryGetValue(oldName, out info))
             {
                 m_Children.Remove(oldName);
-                if (!System.String.IsNullOrEmpty(newName))
+                if (!string.IsNullOrEmpty(newName))
                     m_Children.Add(newName, info);
             }
             return true;
@@ -968,7 +968,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         }
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
         {
-            string newName = System.String.IsNullOrEmpty(parentName) ? "" : parentName + '/';
+            string newName = string.IsNullOrEmpty(parentName) ? "" : parentName + '/';
             newName += displayName;
             if (newName == m_Name.bundleName)
                 return;
@@ -1057,7 +1057,7 @@ namespace AssetBundleBrowser.AssetBundleModel
 
         internal override void HandleReparent(string parentName, BundleFolderInfo newParent = null)
         {
-            string newName = System.String.IsNullOrEmpty(parentName) ? "" : parentName + '/';
+            string newName = string.IsNullOrEmpty(parentName) ? "" : parentName + '/';
             newName += displayName;
             if (newName == m_Name.bundleName)
                 return;

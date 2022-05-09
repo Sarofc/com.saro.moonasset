@@ -93,7 +93,7 @@ namespace AssetBundleBrowser
                 GUILayout.Label(new GUIContent("Name: " + bundle.name), leftStyle);
 
                 long fileSize = -1;
-                if (!System.String.IsNullOrEmpty(SingleBundleInspector.currentPath) && File.Exists(SingleBundleInspector.currentPath))
+                if (!string.IsNullOrEmpty(SingleBundleInspector.currentPath) && File.Exists(SingleBundleInspector.currentPath))
                 {
                     System.IO.FileInfo fileInfo = new System.IO.FileInfo(SingleBundleInspector.currentPath);
                     fileSize = fileInfo.Length;

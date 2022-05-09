@@ -102,11 +102,8 @@ namespace Saro.XAsset.Build
                 scenes = builtInScenes,
                 locationPathName = outputFolder + "/" + targetAppName,
 
-                // TODO 看看是什么机制再说
+                // TODO 配置宏定义 看看是什么机制再说
                 //extraScriptingDefines = GetSettings().ExtraScriptingDefines,
-
-                // TODO sbp need this?
-                //assetBundleManifestPath = GetAssetBundleManifestFilePath(),
 
                 target = EditorUserBuildSettings.activeBuildTarget,
             };
@@ -271,16 +268,16 @@ namespace Saro.XAsset.Build
             AssetDatabase.Refresh();
         }
 
-        public static void BuildCustomAssets()
+        public static void BuildRawBundles()
         {
             try
             {
                 EditorUtility.DisplayProgressBar("BuildCustomAssets", "start build", 0);
 
                 var buildGroups = GetBuildGroups();
-                var customGroups = buildGroups.customGroups;
+                var customGroups = buildGroups.rawGroups;
 
-                var outputDirectory = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_CustomFolder;
+                var outputDirectory = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_RawFolder;
                 if (Directory.Exists(outputDirectory))
                 {
                     Directory.Delete(outputDirectory, true);
@@ -290,11 +287,11 @@ namespace Saro.XAsset.Build
 
                 var dirs = new List<string>();
                 var assetRefs = new List<AssetRef>();
-                var bundleRefs = new List<CustomBundleRef>();
+                var bundleRefs = new List<RawBundleRef>();
 
                 for (int k = 0; k < customGroups.Length; k++)
                 {
-                    CustomGroup group = customGroups[k];
+                    RawGroup group = customGroups[k];
                     var assets = group.assets;
 
                     var dst = outputDirectory + "/" + group.groupName;
@@ -345,15 +342,15 @@ namespace Saro.XAsset.Build
                                 vfs.WriteFile(name, src);
                             }
 
-                            Log.ERROR(String.Join(", ", vfs.GetAllFileInfos()));
+                            Log.ERROR(string.Join(", ", vfs.GetAllFileInfos()));
                             Log.ERROR("vfs file count:" + vfs.FileCount);
                         }
 
                         using (var fs = File.OpenRead(dst))
                         {
-                            bundleRefs.Add(new CustomBundleRef
+                            bundleRefs.Add(new RawBundleRef
                             {
-                                name = XAssetConfig.k_CustomFolder + "/" + group.groupName,
+                                name = XAssetConfig.k_RawFolder + "/" + group.groupName,
                                 size = fs.Length,
                                 hash = HashUtility.GetMd5HexHash(fs),
                             });
@@ -362,9 +359,9 @@ namespace Saro.XAsset.Build
                 }
 
                 var manifest = BuildScript.GetManifest();
-                manifest.customDirs = dirs.ToArray();
-                manifest.customAssets = assetRefs.ToArray();
-                manifest.customBundles = bundleRefs.ToArray();
+                manifest.rawDirs = dirs.ToArray();
+                manifest.rawAssets = assetRefs.ToArray();
+                manifest.rawBundles = bundleRefs.ToArray();
 
                 EditorUtility.SetDirty(manifest);
                 AssetDatabase.SaveAssets();
@@ -380,7 +377,7 @@ namespace Saro.XAsset.Build
             }
         }
 
-        public static void AppendCustomAssetHash()
+        public static void AppendRawBundleHash()
         {
             var buildGroups = BuildScript.GetBuildGroups();
             if (buildGroups.appendAssetHash)
@@ -390,7 +387,7 @@ namespace Saro.XAsset.Build
                 var manifest = BuildScript.GetManifest();
 
                 // customAssets append hash
-                foreach (var item in manifest.customBundles)
+                foreach (var item in manifest.rawBundles)
                 {
                     // TODO test
                     var fileName = item.name;

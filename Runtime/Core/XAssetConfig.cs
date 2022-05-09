@@ -49,7 +49,7 @@ namespace Saro.XAsset
         public const string k_AssetExtension = ".assets";
 
         public const string k_AssetBundleFoler = "Bundle";
-        public const string k_CustomFolder = "Custom";
+        public const string k_RawFolder = "Raw";
 
         public readonly static string k_BasePath = $"{Application.streamingAssetsPath}/{k_Dlc}/{GetCurrentPlatformName()}";
         public readonly static string k_DlcPath = $"{Application.persistentDataPath}/{k_Dlc}/{GetCurrentPlatformName()}";

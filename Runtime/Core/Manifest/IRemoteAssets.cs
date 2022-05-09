@@ -18,5 +18,9 @@
         /// 资源hash
         /// </summary>
         string Hash { get; }
+        /// <summary>
+        /// 是否被压缩
+        /// </summary>
+        bool HasCompress => CompressSize > 0;
     }
 }

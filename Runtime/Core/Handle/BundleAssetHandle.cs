@@ -31,7 +31,7 @@ namespace Saro.XAsset
             }
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
             if (m_BundleHandle != null)
             {

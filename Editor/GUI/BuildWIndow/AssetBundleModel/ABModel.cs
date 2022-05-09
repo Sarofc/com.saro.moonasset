@@ -327,7 +327,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         private static BundleInfo AddBundleToFolder(BundleFolderInfo root, BundleNameData nameData)
         {
             BundleInfo currInfo = root.GetChild(nameData.shortName);
-            if (!System.String.IsNullOrEmpty(nameData.variant))
+            if (!string.IsNullOrEmpty(nameData.variant))
             {
                 if (currInfo == null)
                 {
@@ -660,7 +660,7 @@ namespace AssetBundleBrowser.AssetBundleModel
         {
             //Debug.LogError($"create asset: {name}");
 
-            if (!System.String.IsNullOrEmpty(bundleName))
+            if (!string.IsNullOrEmpty(bundleName))
             {
                 return new AssetInfo(name, bundleName);
             }

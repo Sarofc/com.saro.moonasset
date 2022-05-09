@@ -12,7 +12,7 @@
                 XAssetManager.ERROR($"load asset failed. AssetUrl: {AssetUrl}");
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
 #if UNITY_EDITOR
             Asset = null;

@@ -29,7 +29,7 @@ namespace Saro.XAsset.Build
         }
 
         //[XAssetBuildMethod(15, "打包数据表")]
-        [System.Obsolete("使用CustomAssets", true)]
+        [System.Obsolete("使用RawAssets", true)]
         private static void PackTables()
         {
             try
@@ -42,7 +42,7 @@ namespace Saro.XAsset.Build
                     foreach (var file in files)
                     {
                         var fileName = Path.GetFileName(file);
-                        var dst = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_CustomFolder + "/" + fileName;
+                        var dst = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_RawFolder + "/" + fileName;
 
                         File.Copy(file, dst, true);
                     }
@@ -76,12 +76,12 @@ namespace Saro.XAsset.Build
         }
 
 
-        [XAssetBuildMethod(40, "Build CustomAssets", tooltip = "非AB资源打包成vfs文件")]
-        private static void BuildCustomAssets()
+        [XAssetBuildMethod(40, "Build RawBundles", tooltip = "非AB资源打包成vfs文件")]
+        private static void BuildRawBundles()
         {
-            BuildScript.BuildCustomAssets();
+            BuildScript.BuildRawBundles();
 
-            BuildScript.AppendCustomAssetHash();
+            BuildScript.AppendRawBundleHash();
 
             var buildGroups = BuildScript.GetBuildGroups();
             buildGroups.ApplyResVersionBuildAsset();
@@ -98,7 +98,7 @@ namespace Saro.XAsset.Build
             Manifest.Build(manifest);
         }
 
-        [XAssetBuildMethod(44, "上传到资源服(基于Manifest)", false)]
+        [XAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false)]
         private static void UploadAssetsToFileServerUseManifest()
         {
             var buildGroups = BuildScript.GetBuildGroups();

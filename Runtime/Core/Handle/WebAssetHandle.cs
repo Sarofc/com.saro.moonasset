@@ -111,7 +111,7 @@ namespace Saro.XAsset
             LoadState = ELoadState.LoadAsset;
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
             if (Asset != null)
             {

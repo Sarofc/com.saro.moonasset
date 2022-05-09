@@ -1,7 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using System.Collections.Generic;
-
-namespace Saro.XAsset
+﻿namespace Saro.XAsset
 {
     public partial class XAssetManager
     {

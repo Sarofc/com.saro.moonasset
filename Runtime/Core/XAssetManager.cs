@@ -10,20 +10,20 @@ using UnityEngine;
 namespace Saro.XAsset
 {
     /*
-     * 
+     *
      * https://baddogzz.github.io/2020/02/07/Unload-Resources/
-     * 
+     *
      * WARN
-     * 
+     *
      * 1. 如果资源加载没控制好，需要在合适的时候调用 Resources.UnloadUnusedAssets()
-     * 
+     *
      * TODO
-     * 
+     *
      * 2. 考虑使用一个policy类，对资源加载策略进行封装
      *   x 切场景时清理资源
      *   x 每隔多久，清理一次无用资源
      *   - 资源多久没使用，就标记自动卸载
-     *   
+     *
      */
 
     public sealed partial class XAssetManager : IAssetInterface
@@ -137,13 +137,32 @@ namespace Saro.XAsset
             }
         }
 
-        // TODO 如果真的需要清理所有资源，那不能被清理得资源要标记上 HideFlags.DontUnloadUnusedAsset
-        // issue 进游戏热更后
-        // 从没有appendhash，转为appendhash后，因载入了部分内容相同，但名字不一样的ab
-        // 报错 The AssetBundle 'xxx.bundle' can't be loaded because another AssetBundle with the same files is already loaded.
-        [System.Obsolete("看上去不需要清理，只有热更了已经加载的bundle才会有问题，需要重启")]
-        public void ClearAssetReference()
+        /*
+             issue 进游戏热更后
+            从没有appendhash，转为appendhash后，因载入了部分内容相同，但名字不一样的ab
+            报错 The AssetBundle 'xxx.bundle' can't be loaded because another AssetBundle with the same files is already loaded.
+
+            方案1
+            AssetBundle.UnloadAllAssetBundles(false); 此种方式，一些旧bundle加载出来的资源，就没有被卸载掉，需要调用 Resources.UnloadUnusedAssets() 清理;
+            
+            方案2
+            区分 可热更bundle，这类bundle在资源加载完成前，不要加载
+
+            方案3
+            那不能被清理得资源要标记上 HideFlags.DontUnloadUnusedAsset?未试验过是否可行，仅提供一个方向
+        */
+        /// <summary>
+        /// 清理所有资源引用
+        /// <code>WARN 此接口可能会导致一些问题，谨慎调用</code>
+        /// </summary>
+        /// <param name="unloadAllObjects">强制卸载所有资源，only for AssetBundle</param>
+        public void ClearAssetReference(bool unloadAllObjects = true)
         {
+            // 大致同方案1，清理掉ref，使用unload(false)
+            //AssetBundle.UnloadAllAssetBundles(unloadAllObjects);
+
+            INFO("<color=red>ClearAssetReference</color>");
+
             foreach (var item in m_AssetHandleMap)
             {
                 item.Value.SetRefCountForce(0);
@@ -156,7 +175,7 @@ namespace Saro.XAsset
 
             UnloadUnusedAssets();
             UpdateAssets();
-            UpdateBundles();
+            UpdateBundles(unloadAllObjects);
         }
 
         public string GetAppVersion()
@@ -197,6 +216,7 @@ namespace Saro.XAsset
             __AnalyzeHandle(handle);
 
             INFO($"LoadScene: {path}");
+
             return handle;
         }
 
@@ -421,12 +441,12 @@ namespace Saro.XAsset
                 //    path.StartsWith("https://", StringComparison.Ordinal) ||
                 //    path.StartsWith("file://", StringComparison.Ordinal) ||
                 //    path.StartsWith("ftp://", StringComparison.Ordinal) ||
-                //    path.StartsWith("jar:file://", StringComparison.Ordinal)) 
+                //    path.StartsWith("jar:file://", StringComparison.Ordinal))
                 //{
                 //    // 网络下载，再加载
                 //    handle = new WebAssetHandle();
                 //}
-                //else 
+                //else
                 {
                     // 都不是，则使用 AssetDatabase 加载，真机会报错
                     handle = new AssetDatabaseHandle();
@@ -476,7 +496,17 @@ namespace Saro.XAsset
 #endif
 
             var ret = AssetToBundle.TryGetValue(path, out var bundleRef);
-            assetBundleName = ret ? bundleRef.name : null;
+            if (ret)
+            {
+                assetBundleName = bundleRef.name;
+            }
+            else
+            {
+                assetBundleName = null;
+
+                ERROR($"GetAssetBundleName failed. path: {path}");
+            }
+
             return ret;
         }
 
@@ -549,7 +579,7 @@ namespace Saro.XAsset
             {
                 if (remoteAssets != null) // 如果能获取到远端资源信息，就尝试去下载
                 {
-                    handle = new WebBundleHandle
+                    handle = new WebBundleAssetHandle
                     {
                         Info = new DownloadInfo
                         {
@@ -577,7 +607,7 @@ namespace Saro.XAsset
 
             if (MaxBundlesPerframe > 0
                 && m_LoadingAssetHandles.Count >= MaxBundlesPerframe
-                && (handle is BundleAsyncHandle || handle is WebBundleHandle))
+                && (handle is BundleAsyncHandle || handle is WebBundleAssetHandle))
             {
                 // 当前异步加载的bundle超过 配置上限，加到待加载队列里去
                 m_PendingBundleHandles.Enqueue(handle);
@@ -596,7 +626,7 @@ namespace Saro.XAsset
             return handle;
         }
 
-        private void UpdateBundles()
+        private void UpdateBundles(bool unloadAllObjects = true)
         {
             if (m_PendingBundleHandles.Count > 0 &&
                 MaxBundlesPerframe > 0 &&
@@ -646,8 +676,8 @@ namespace Saro.XAsset
 
                     UnloadDependencies(handle);
 
-                    handle.Unload();
-                    INFO("UnloadBundle: " + handle.AssetUrl);
+                    handle.Unload(unloadAllObjects);
+                    INFO($"UnloadBundle: {handle.AssetUrl} unloadAllObjects: {unloadAllObjects}");
                     m_UnusedBundleHandles.RemoveAt(i--);
                 }
             }

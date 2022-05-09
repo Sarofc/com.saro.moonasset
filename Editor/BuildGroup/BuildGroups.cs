@@ -27,7 +27,7 @@ namespace Saro.XAsset.Build
         [Tooltip("是否用hash代替bundle名称")]
         public bool nameBundleByHash = true;
 
-        [Tooltip("TODO 在asset名字后面，补上文件hash，避免cdn缓存问题，下载完成，也可以少校验一次")]
+        [Tooltip("TODO 在asset名字后面，补上文件hash，避免cdn缓存问题")]
         public bool appendAssetHash = true;
 
         [Tooltip("不被打包的资源，全小写")]
@@ -73,7 +73,7 @@ namespace Saro.XAsset.Build
         }
 
         /// <summary>
-        /// 更新资源版本号 TODO 考虑在BuildMethods里直接弄一个方法增加好了
+        /// 更新资源版本号
         /// </summary>
         /// <returns></returns>
         public int AddResVersion()
@@ -100,7 +100,7 @@ namespace Saro.XAsset.Build
 
             Save();
 
-            ApplyCustomGroups();
+            ApplyRawGroups();
         }
 
         public AssetBundleBuild[] GetAssetBundleBuilds()
@@ -514,14 +514,14 @@ namespace Saro.XAsset.Build
 
         #endregion
 
-        #region CustomGroup
+        #region RawGroup
 
-        [Header("CustomAsset打包")]
-        public CustomGroup[] customGroups = new CustomGroup[0];
+        [Header("RawAsset打包")]
+        public RawGroup[] rawGroups = new RawGroup[0];
 
-        private void ApplyCustomGroups()
+        private void ApplyRawGroups()
         {
-            foreach (var group in customGroups)
+            foreach (var group in rawGroups)
             {
                 var assets = group.GetAssets();
             }
@@ -563,7 +563,7 @@ namespace Saro.XAsset.Build
         {
             using (HashSetPool<string>.Rent(out var set))
             {
-                foreach (var group in customGroups)
+                foreach (var group in rawGroups)
                 {
                     if (group.builtIn)
                     {

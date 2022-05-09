@@ -52,7 +52,11 @@ namespace Saro.XAsset
 
         internal abstract void Load();
 
-        internal abstract void Unload();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unloadAllObjects">only for AssetBundle</param>
+        internal abstract void Unload(bool unloadAllObjects = true);
 
         internal bool Update()
         {
@@ -77,7 +81,7 @@ namespace Saro.XAsset
 
         #region DelayUnload
 
-        // TODO 开个分支再弄！
+        // TODO 思考下，究竟需不需要在资源管理器层，做延迟卸载，如果需要，开个分支再弄！
 
         private float m_UnloadTime = -1f;
 

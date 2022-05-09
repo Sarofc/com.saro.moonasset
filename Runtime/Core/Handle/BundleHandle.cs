@@ -21,11 +21,11 @@ namespace Saro.XAsset
                 Error = "LoadFromFile failed. AsserUrl: " + AssetUrl;
         }
 
-        internal override void Unload()
+        internal override void Unload(bool unloadAllObjects = true)
         {
             if (Bundle == null)
                 return;
-            Bundle.Unload(true);
+            Bundle.Unload(unloadAllObjects);
             Bundle = null;
         }
     }

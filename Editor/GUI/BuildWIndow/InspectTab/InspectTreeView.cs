@@ -42,7 +42,7 @@ namespace AssetBundleBrowser
             {
                 foreach (var folder in m_InspectTab.BundleList)
                 {
-                    if (System.String.IsNullOrEmpty(folder.Key))
+                    if (string.IsNullOrEmpty(folder.Key))
                     {
                         foreach (var path in folder.Value)
                             root.AddChild(new InspectTreeItem(path, 0));
