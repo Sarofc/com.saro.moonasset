@@ -207,7 +207,7 @@ namespace Saro.XAsset.Build
             }
 
             // custom asset
-            var builtInCustomAssets = group.GetBuiltInCustomAssets(manifest);
+            var builtInCustomAssets = group.GetBuiltInRawAssets(manifest);
             sb.AppendLine();
             sb.AppendLine("*custom asset:" + builtInCustomAssets.Length);
             foreach (var fileName in builtInCustomAssets)

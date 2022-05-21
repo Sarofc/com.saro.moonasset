@@ -23,7 +23,6 @@ namespace Saro.XAsset.Build
         private readonly Dictionary<string, HashSet<string>> m_Tracker = new Dictionary<string, HashSet<string>>(1024, StringComparer.Ordinal);
 
         [Header("Settings")]
-
         [Tooltip("是否用hash代替bundle名称")]
         public bool nameBundleByHash = true;
 
@@ -57,8 +56,11 @@ namespace Saro.XAsset.Build
         [Header("AssetBundle打包")]
         public BundleGroup[] bundleGroups = new BundleGroup[0];
 
-        [ReadOnly] public RuleAsset[] ruleAssets = new RuleAsset[0];
-        [ReadOnly] public RuleBundle[] ruleBundles = new RuleBundle[0];
+        [ReadOnly]
+        public RuleAsset[] ruleAssets = new RuleAsset[0];
+
+        [ReadOnly]
+        public RuleBundle[] ruleBundles = new RuleBundle[0];
 
         #region API
 
@@ -212,6 +214,7 @@ namespace Saro.XAsset.Build
                     list = new List<string>(64);
                     bundles[bundle] = list;
                 }
+
                 var asset = item.Key;
                 if (!list.Contains(asset)) list.Add(asset);
             }
@@ -267,7 +270,7 @@ namespace Saro.XAsset.Build
             int i = 0, max = m_ConflictedAssets.Count;
             foreach (var item in m_ConflictedAssets)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"优化冲突{i}/{max}", item.Key, i / (float)max))
+                if (EditorUtility.DisplayCancelableProgressBar($"优化冲突{i}/{max}", item.Key, i / (float) max))
                     break;
 
                 var list = item.Value;
@@ -276,6 +279,7 @@ namespace Saro.XAsset.Build
                     if (!IsSceneAsset(asset))
                         m_NeedOptimizedAssets.Add(asset);
                 }
+
                 i++;
             }
 
@@ -283,7 +287,7 @@ namespace Saro.XAsset.Build
             max = m_NeedOptimizedAssets.Count;
             foreach (var item in m_NeedOptimizedAssets)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"优化冗余{i}/{max}", item, i / (float)max))
+                if (EditorUtility.DisplayCancelableProgressBar($"优化冗余{i}/{max}", item, i / (float) max))
                     break;
 
                 OptimizeAsset(item);
@@ -299,7 +303,7 @@ namespace Saro.XAsset.Build
             {
                 var bundle = item.Key;
 
-                if (EditorUtility.DisplayCancelableProgressBar($"分析依赖{i}/{max}", bundle, i / (float)max))
+                if (EditorUtility.DisplayCancelableProgressBar($"分析依赖{i}/{max}", bundle, i / (float) max))
                     break;
 
                 var assetPaths = bundle2Assets[bundle];
@@ -343,6 +347,7 @@ namespace Saro.XAsset.Build
                         }
                     }
                 }
+
                 i++;
             }
         }
@@ -353,7 +358,7 @@ namespace Saro.XAsset.Build
             {
                 var group = bundleGroups[i];
 
-                if (EditorUtility.DisplayCancelableProgressBar($"收集资源{i}/{max}", group.searchPath, i / (float)max))
+                if (EditorUtility.DisplayCancelableProgressBar($"收集资源{i}/{max}", group.searchPath, i / (float) max))
                     break;
 
                 ApplyBundleGroup(group);
@@ -383,15 +388,15 @@ namespace Saro.XAsset.Build
                 switch (group.nameBy)
                 {
                     case BundleGroup.ENameBy.Path:
-                        {
-                            m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
-                            break;
-                        }
+                    {
+                        m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
+                        break;
+                    }
                     case BundleGroup.ENameBy.Directory:
-                        {
-                            m_Asset2Bundles[asset] = RuledAssetBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
-                            break;
-                        }
+                    {
+                        m_Asset2Bundles[asset] = RuledAssetBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
+                        break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -410,7 +415,7 @@ namespace Saro.XAsset.Build
             for (int i = 0; i < atlasPaths.Length; i++)
             {
                 string atlasPath = atlasPaths[i];
-                if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float)atlasPaths.Length))
+                if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float) atlasPaths.Length))
                     break;
 
                 var bundleName = RuledAssetBundleName(atlasPath);
@@ -421,6 +426,7 @@ namespace Saro.XAsset.Build
                     {
                         continue;
                     }
+
                     if (!m_SpriteAtlasTracker.TryGetValue(assetPath, out var bundles))
                     {
                         bundles = new HashSet<string>();
@@ -470,10 +476,7 @@ namespace Saro.XAsset.Build
 
                 return m_Asset2BundleCahce;
             }
-            set
-            {
-                m_Asset2BundleCahce = value;
-            }
+            set { m_Asset2BundleCahce = value; }
         }
 
         private Dictionary<string, string> m_Asset2BundleCahce;
@@ -495,6 +498,7 @@ namespace Saro.XAsset.Build
             {
                 return bundle;
             }
+
             return null;
         }
 
@@ -532,7 +536,7 @@ namespace Saro.XAsset.Build
         #region MyRegion
 
         /// <summary>
-        /// 获取包体资源，需要打完包，才行
+        /// 获取包体资源，需要打完包才行
         /// </summary>
         /// <returns></returns>
         public string[] GetBuiltInAssetBundles(Manifest manifest)
@@ -556,10 +560,10 @@ namespace Saro.XAsset.Build
         }
 
         /// <summary>
-        /// 获取包体资源，需要打完包，才行
+        /// 获取包体资源，需要打完包才行
         /// </summary>
         /// <returns></returns>
-        public string[] GetBuiltInCustomAssets(Manifest manifest)
+        public string[] GetBuiltInRawAssets(Manifest manifest)
         {
             using (HashSetPool<string>.Rent(out var set))
             {

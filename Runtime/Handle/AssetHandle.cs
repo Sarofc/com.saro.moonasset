@@ -79,46 +79,6 @@ namespace Saro.XAsset
 
         public Action<IAssetHandle> Completed { get; set; }
 
-        #region DelayUnload
-
-        // TODO 思考下，究竟需不需要在资源管理器层，做延迟卸载，如果需要，开个分支再弄！
-
-        private float m_UnloadTime = -1f;
-
-        internal void MarkUnload(bool immediate)
-        {
-            if (XAssetManager.Current.Policy.AutoUnloadAsset)
-            {
-                m_UnloadTime = immediate ? 0.1f : Time.unscaledTime + XAssetManager.Current.Policy.UnusedAssetUnloadDelay;
-            }
-        }
-
-        internal void UnMarkUnload()
-        {
-            if (XAssetManager.Current.Policy.AutoUnloadAsset)
-            {
-                m_UnloadTime = -1f;
-            }
-        }
-
-        internal bool IsMarkUnload()
-        {
-            if (!XAssetManager.Current.Policy.AutoUnloadAsset)
-                return false;
-
-            return m_UnloadTime > 0f;
-        }
-
-        internal bool IsReadyUnload()
-        {
-            if (!XAssetManager.Current.Policy.AutoUnloadAsset)
-                return true;
-
-            return m_UnloadTime <= Time.unscaledTime;
-        }
-
-        #endregion
-
         #region IEnumerator Impl
 
         public bool MoveNext()

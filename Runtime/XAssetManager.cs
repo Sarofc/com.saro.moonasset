@@ -22,7 +22,7 @@ namespace Saro.XAsset
      * 2. 考虑使用一个policy类，对资源加载策略进行封装
      *   x 切场景时清理资源
      *   x 每隔多久，清理一次无用资源
-     *   - 资源多久没使用，就标记自动卸载
+     *   - 资源多久没使用，就标记自动卸载（废弃，不考虑了，要做，就业务逻辑自己做）
      *
      */
 
@@ -31,10 +31,7 @@ namespace Saro.XAsset
         /// <summary>
         /// 加载远端资源失败委托，统一托管
         /// </summary>
-        public Action<string> OnLoadRemoteAssetError { get; set; } = (asseteName) =>
-        {
-            ERROR($" <color=blue>[auto]</color> OnLoadRemoteAssetError. download error. assetName: {asseteName}");
-        };
+        public Action<string> OnLoadRemoteAssetError { get; set; } = (assetName) => { ERROR($" <color=blue>[auto]</color> OnLoadRemoteAssetError. download error. assetName: {assetName}"); };
 
         /// <summary>
         /// 加载远端资源状态委托，false:开始加载 true:完成加载
@@ -44,8 +41,23 @@ namespace Saro.XAsset
         public Manifest Manifest => m_Manifest;
         private Manifest m_Manifest;
 
-        public string RemoteVersionUrl { get { if (m_Manifest == null) return null; return m_Manifest.remoteVersionUrl; } }
-        public string RemoteAssetUrl { get { if (m_Manifest == null) return null; return m_Manifest.remoteAssetUrl; } }
+        public string RemoteVersionUrl
+        {
+            get
+            {
+                if (m_Manifest == null) return null;
+                return m_Manifest.remoteVersionUrl;
+            }
+        }
+
+        public string RemoteAssetUrl
+        {
+            get
+            {
+                if (m_Manifest == null) return null;
+                return m_Manifest.remoteAssetUrl;
+            }
+        }
 
         public class XAssetPolicy
         {
@@ -53,14 +65,11 @@ namespace Saro.XAsset
             /// TODO dev 自动卸载资源，默认关闭
             /// </summary>
             public bool AutoUnloadAsset { get; set; } = false;
+
             /// <summary>
             /// <see cref="AutoUnloadAsset"/>开启后，多久调用一次<see cref="UnloadUnusedAssets"/>
             /// </summary>
             public float AutoUnloadAssetInterval { get; set; } = 5f;
-            /// <summary>
-            /// TODO 资源多久不用后，才被卸载，这个需要思考下 有无必要，实现难度
-            /// </summary>
-            public float UnusedAssetUnloadDelay { get; set; } = 30f;
 
             /// <summary>
             /// 卸载场景时，卸载无用资源，默认开启
@@ -78,10 +87,12 @@ namespace Saro.XAsset
             /// 使用 AssetDatabase
             /// </summary>
             Editor = 0,
+
             /// <summary>
             /// 加载 ExtraAssets 目录
             /// </summary>
             Simulate = 1,
+
             /// <summary>
             /// 真机
             /// </summary>
@@ -107,14 +118,16 @@ namespace Saro.XAsset
             UpdateBundles();
             //UnityEngine.Profiling.Profiler.EndSample();
 
-            //UnityEngine.Profiling.Profiler.BeginSample("[XAsset] AutoUnloadUnussedAssets");
-            AutoUnloadUnussedAssets();
+            //UnityEngine.Profiling.Profiler.BeginSample("[XAsset] AutoUnloadUnusedAssets");
+            AutoUnloadUnusedAssets();
             //UnityEngine.Profiling.Profiler.EndSample();
         }
 
         void IService.Awake() => Initialize();
 
-        void IService.Dispose() { }
+        void IService.Dispose()
+        {
+        }
 
         #endregion
 
@@ -191,6 +204,7 @@ namespace Saro.XAsset
         }
 
         private SceneAssetHandle m_MainSceneHandle;
+
         public IAssetHandle LoadSceneAsync(string path, bool additive = false)
         {
             if (string.IsNullOrEmpty(path))
@@ -207,8 +221,10 @@ namespace Saro.XAsset
                     m_MainSceneHandle.DecreaseRefCount();
                     m_MainSceneHandle = null;
                 }
+
                 m_MainSceneHandle = handle;
             }
+
             handle.Load();
             handle.IncreaseRefCount();
             m_SceneHandles.Add(handle);
@@ -240,17 +256,10 @@ namespace Saro.XAsset
             {
                 if (item.Value.IsUnused())
                 {
-                    //{
-                    //    if (!item.Value.IsMarkUnload())
-                    //    {
-                    //        item.Value.MarkUnload(immediate);
-                    //        m_UnusedAssetHandles.Add(item.Value);
-                    //    }
-                    //}
-
                     m_UnusedAssetHandles.Add(item.Value);
                 }
             }
+
             foreach (var handle in m_UnusedAssetHandles)
             {
                 m_AssetHandleMap.Remove(handle.AssetUrl);
@@ -261,17 +270,10 @@ namespace Saro.XAsset
             {
                 if (item.Value.IsUnused())
                 {
-                    //{
-                    //    if (!item.Value.IsMarkUnload())
-                    //    {
-                    //        item.Value.MarkUnload(immediate);
-                    //        m_UnusedBundleHandles.Add(item.Value);
-                    //    }
-                    //}
-
                     m_UnusedBundleHandles.Add(item.Value);
                 }
             }
+
             foreach (var handle in m_UnusedBundleHandles)
             {
                 m_BundleHandleMap.Remove(handle.AssetUrl);
@@ -295,10 +297,9 @@ namespace Saro.XAsset
 
             if (TryGetAssetPath(manifestName, out var manifestPath, out _))
             {
-                string content = null;
                 try
                 {
-                    content = FileUtility.ReadAllText(manifestPath);
+                    string content = FileUtility.ReadAllText(manifestPath);
 
                     if (!string.IsNullOrEmpty(content))
                     {
@@ -328,7 +329,7 @@ namespace Saro.XAsset
             //INFO(m_Manifest.ToString());
         }
 
-        private void AutoUnloadUnussedAssets()
+        private void AutoUnloadUnusedAssets()
         {
             if (Policy.AutoUnloadAsset)
             {
@@ -362,18 +363,6 @@ namespace Saro.XAsset
                 {
                     var handle = m_UnusedAssetHandles[i];
                     if (!handle.IsDone) continue;
-
-                    // 延迟卸载支持
-                    //{
-                    //    if (!handle.IsUnused())
-                    //    {
-                    //        handle.UnMarkUnload();
-                    //        m_UnusedAssetHandles.RemoveAt(i--);
-                    //        continue;
-                    //    }
-                    //    if (!handle.IsReadyUnload()) continue;
-                    //    m_AssetHandles.Remove(handle.AssetUrl); // 其他地方应该只mark
-                    //}
 
                     INFO($"UnloadAsset: {handle.AssetUrl}");
                     handle.Unload();
@@ -448,7 +437,8 @@ namespace Saro.XAsset
                 //}
                 //else
                 {
-                    // 都不是，则使用 AssetDatabase 加载，真机会报错
+                    // 都不是，则使用 AssetDatabase 加载
+                    // 真机会报错
                     handle = new AssetDatabaseHandle();
                 }
             }
@@ -475,7 +465,7 @@ namespace Saro.XAsset
         /// 异步加载bundle，每帧加载数量限制
         /// <code>0 意为不限制</code>
         /// </summary>
-        public int MaxBundlesPerframe { get; set; } = 0;
+        public int MaxBundlesPerFrame { get; set; } = 0;
 
         private readonly Dictionary<string, BundleHandle> m_BundleHandleMap = new(128, StringComparer.Ordinal); // 已加载bundle
         private readonly List<BundleHandle> m_LoadingBundleHandles = new(64); // 正在加载bundle
@@ -605,8 +595,8 @@ namespace Saro.XAsset
 
             m_BundleHandleMap.Add(assetPath, handle);
 
-            if (MaxBundlesPerframe > 0
-                && m_LoadingAssetHandles.Count >= MaxBundlesPerframe
+            if (MaxBundlesPerFrame > 0
+                && m_LoadingAssetHandles.Count >= MaxBundlesPerFrame
                 && (handle is BundleAsyncHandle || handle is WebBundleAssetHandle))
             {
                 // 当前异步加载的bundle超过 配置上限，加到待加载队列里去
@@ -629,11 +619,11 @@ namespace Saro.XAsset
         private void UpdateBundles(bool unloadAllObjects = true)
         {
             if (m_PendingBundleHandles.Count > 0 &&
-                MaxBundlesPerframe > 0 &&
-                m_LoadingBundleHandles.Count < MaxBundlesPerframe
-                )
+                MaxBundlesPerFrame > 0 &&
+                m_LoadingBundleHandles.Count < MaxBundlesPerFrame
+               )
             {
-                var toLoadCount = Math.Min(MaxBundlesPerframe - m_LoadingBundleHandles.Count, m_PendingBundleHandles.Count);
+                var toLoadCount = Math.Min(MaxBundlesPerFrame - m_LoadingBundleHandles.Count, m_PendingBundleHandles.Count);
                 while (toLoadCount > 0)
                 {
                     var handle = m_PendingBundleHandles.Dequeue();
@@ -643,6 +633,7 @@ namespace Saro.XAsset
                         INFO("LoadBundle: " + handle.AssetUrl);
                         m_LoadingBundleHandles.Add(handle);
                     }
+
                     toLoadCount--;
                 }
             }
@@ -661,18 +652,6 @@ namespace Saro.XAsset
                 {
                     var handle = m_UnusedBundleHandles[i];
                     if (!handle.IsDone) continue;
-
-                    // 延迟卸载支持
-                    //{
-                    //    if (!handle.IsUnused())
-                    //    {
-                    //handle.UnMarkUnload();
-                    //        m_UnusedBundleHandles.RemoveAt(i--);
-                    //        continue;
-                    //    }
-                    //    if (!handle.IsReadyUnload()) continue;
-                    //    m_UrlToBundleHandles.Remove(handle.AssetUrl);
-                    //}
 
                     UnloadDependencies(handle);
 
@@ -702,6 +681,7 @@ namespace Saro.XAsset
                 list = new List<IAssetHandle>();
                 AnalyzeHandles.Add(handle.AssetUrl, list);
             }
+
             list.Add(handle);
 #endif
         }
