@@ -150,7 +150,7 @@ namespace Saro.XAsset.Build
             }
 
             OnProgress("", 0, 1);
-            Saro.Net.HttpHelper.UploadFiles(url, localFiles, remoteFiles, OnProgress);
+            Saro.Net.Http.HttpHelper.UploadFiles(url, localFiles, remoteFiles, OnProgress);
 
             UnityEngine.Object.DestroyImmediate(manifest);
             GC.Collect();
