@@ -13,7 +13,7 @@ namespace Saro.XAsset
         /// <returns>false代表本地没有找到资源</returns>
         public delegate bool AssetLocator(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets);
 
-        private List<AssetLocator> m_AssetLocators = new List<AssetLocator>();
+        private readonly List<AssetLocator> m_AssetLocators = new();
 
         public void AddAssetLocator(AssetLocator locator)
         {
