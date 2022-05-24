@@ -26,7 +26,7 @@ namespace Saro.XAsset
      *
      */
 
-    public sealed partial class XAssetManager : IAssetInterface
+    public sealed partial class XAssetManager : IAssetManager
     {
         /// <summary>
         /// 加载远端资源失败委托，统一托管
@@ -104,7 +104,7 @@ namespace Saro.XAsset
         /// <summary>
         /// 只内部调用，外部通过 <see cref="Main.Resolve(Type)"/> 来获取
         /// </summary>
-        internal static XAssetManager Current => Main.Resolve<IAssetInterface>() as XAssetManager;
+        internal static XAssetManager Current => Main.Resolve<IAssetManager>() as XAssetManager;
 
         #region Service Impl
 
