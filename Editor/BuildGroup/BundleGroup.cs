@@ -9,7 +9,7 @@ using UnityEngine;
 //sbp 不支持变体
 //https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     [Serializable]
     public class BundleGroup
@@ -36,7 +36,7 @@ namespace Saro.XAsset.Build
         public string searchPath;
 
         [Tooltip("搜索通配符，多个之间请用,(逗号)隔开")]
-        public string searchPattern;
+        public string searchPattern = "*";
 
         [Tooltip("命名规则")]
         public ENameBy nameBy = ENameBy.Directory;

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public class BundleHandle : AssetHandle
     {
@@ -9,8 +9,8 @@ namespace Saro.XAsset
 
         public virtual AssetBundle Bundle
         {
-            get { return Asset as AssetBundle; }
-            internal set { Asset = value; }
+            get => Asset as AssetBundle;
+            internal set => Asset = value;
         }
 
         internal override void Load()

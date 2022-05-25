@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
 
-[assembly: InternalsVisibleTo("Saro.XAsset.Editor")]
+[assembly: InternalsVisibleTo("Saro.MoonAsset.Editor")]
 

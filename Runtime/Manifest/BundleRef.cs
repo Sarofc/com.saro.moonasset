@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     [Serializable]
     public class BundleRef : IRemoteAssets
     {
         /// <summary>
-        /// AB包名，eg.  Bundle/abName.  <see cref="XAssetConfig.k_AssetBundleFoler"/>
+        /// AB包名，eg.  Bundle/abName.  <see cref="MoonAssetConfig.k_AssetBundleFoler"/>
         /// </summary>
         public string name;
 

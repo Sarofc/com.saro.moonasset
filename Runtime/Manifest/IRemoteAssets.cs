@@ -1,4 +1,4 @@
-﻿namespace Saro.XAsset
+﻿namespace Saro.MoonAsset
 {
     public interface IRemoteAssets
     {

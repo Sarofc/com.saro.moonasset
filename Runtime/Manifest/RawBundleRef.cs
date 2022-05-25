@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     [Serializable]
     public class RawBundleRef : IRemoteAssets
     {
         /// <summary>
-        /// 资源索引名称，eg.  Extra/dir/name.  <see cref="XAssetConfig.k_RawFolder"/>
+        /// 资源索引名称，eg.  Extra/dir/name.  <see cref="MoonAssetConfig.k_RawFolder"/>
         /// </summary>
         public string name;
 

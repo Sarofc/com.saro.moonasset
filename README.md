@@ -1,9 +1,13 @@
-# xasset
+# MoonAsset
 
 ![](https://img.shields.io/badge/version-v0.1-green.svg)
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
 作为[MGF](https://github.com/Sarofc/com.saro.mgf)子模块
+
+## 环境
+
+- Unity 2021.3
 
 ## 特性
 
@@ -17,7 +21,7 @@
 - 提供AssetBundle浏览器，查看AssetBundle打包状况
 - 提供资源引用窗口查看引用计数
 
-## 免责声明
+## 声明
 
 此项目基于`XAsset 4.x`版本开发，此版本为`MIT协议`
 

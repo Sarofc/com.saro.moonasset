@@ -1,8 +1,8 @@
 ﻿using Saro.Utility;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public sealed class LocalAssetLocator : BaseAssetLocator
+    public sealed class LocalAssetLocator : AssetLocatorBase
     {
         public LocalAssetLocator(string directory) : base(directory)
         {

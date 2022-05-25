@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public class XAssetDebugWindow : EditorWindow
+    public class MoonAssetDebugWindow : EditorWindow
     {
         private List<TabWindow> m_TabWindows;
         private int m_Mode;
         private string[] m_ToolbarLabels;
 
-        [MenuItem("MGF Tools/Debug/XAsset Debugger")]
+        [MenuItem("MGF Tools/Debug/MoonAssets Debugger")]
         private static void ShowWindow()
         {
-            var window = GetWindow<XAssetDebugWindow>();
-            window.titleContent = new GUIContent("XAsset Debugger");
+            var window = GetWindow<MoonAssetDebugWindow>();
+            window.titleContent = new GUIContent("MoonAssets Debugger");
             window.Show();
         }
 
         private void OnEnable()
         {
             m_TabWindows = new List<TabWindow>();
-            m_TabWindows.Add(new XAssetReferenceTab());
+            m_TabWindows.Add(new MoonAssetReferenceTab());
 
             m_ToolbarLabels = new string[m_TabWindows.Count];
 
@@ -54,9 +54,9 @@ namespace Saro.XAsset
                 return;
             }
 
-            if (XAssetManager.Current == null)
+            if (MoonAsset.Current == null)
             {
-                EditorGUILayout.HelpBox("XAssetComponent 实例未注册", MessageType.Warning);
+                EditorGUILayout.HelpBox("MoonAsset 实例未注册", MessageType.Warning);
                 return;
             }
 

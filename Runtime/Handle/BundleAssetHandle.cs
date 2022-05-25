@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public class BundleAssetHandle : AssetHandle
     {
         protected readonly string m_AssetBundleName;
-        protected BundleHandle m_BundleHandle;
+        protected BundleHandle bundleHandle;
 
         public BundleAssetHandle(string bundle)
         {
@@ -18,25 +18,25 @@ namespace Saro.XAsset
             // 同一帧，先调异步接口，再调用同步接口，同步接口 bundle.assetBundle 报空
             // （不确定异步加载bundle未完成时的情况）
 
-            m_BundleHandle = XAssetManager.Current.LoadBundle(m_AssetBundleName);
+            bundleHandle = MoonAsset.Current.LoadBundle(m_AssetBundleName);
 
             if (typeof(Component).IsAssignableFrom(AssetType))
             {
-                var gameObject = m_BundleHandle.Bundle.LoadAsset<GameObject>(AssetUrl);
+                var gameObject = bundleHandle.Bundle.LoadAsset<GameObject>(AssetUrl);
                 Asset = gameObject.GetComponent(AssetType);
             }
             else
             {
-                Asset = m_BundleHandle.Bundle.LoadAsset(AssetUrl, AssetType);
+                Asset = bundleHandle.Bundle.LoadAsset(AssetUrl, AssetType);
             }
         }
 
         internal override void Unload(bool unloadAllObjects = true)
         {
-            if (m_BundleHandle != null)
+            if (bundleHandle != null)
             {
-                m_BundleHandle.DecreaseRefCount();
-                m_BundleHandle = null;
+                bundleHandle.DecreaseRefCount();
+                bundleHandle = null;
             }
 
             // 这里依赖 Bundle.Unload(true) 来卸载资源

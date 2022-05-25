@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public class SceneAssetAsyncHandle : SceneAssetHandle
     {
@@ -17,19 +17,19 @@ namespace Saro.XAsset
         {
             get
             {
-                if (m_Handle == null)
+                if (handle == null)
                     return m_AsyncOperation == null ? 0 : m_AsyncOperation.progress;
 
-                var bundleProgress = m_Handle.Progress;
-                if (m_Handle.Dependencies.Count <= 0)
+                var bundleProgress = handle.Progress;
+                if (handle.Dependencies.Count <= 0)
                     return bundleProgress * 0.3f + (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
-                for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
                 {
-                    var item = m_Handle.Dependencies[i];
+                    var item = handle.Dependencies[i];
                     bundleProgress += item.Progress;
                 }
 
-                return bundleProgress / (m_Handle.Dependencies.Count + 1) * 0.3f +
+                return bundleProgress / (handle.Dependencies.Count + 1) * 0.3f +
                        (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
             }
         }
@@ -44,22 +44,22 @@ namespace Saro.XAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (m_Handle == null || m_Handle.Error != null)
+                            if (handle == null || handle.Error != null)
                                 return true;
 
-                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_Handle.Dependencies[i];
+                                var item = handle.Dependencies[i];
                                 if (item.Error != null)
                                     return true;
                             }
 
-                            if (!m_Handle.IsDone)
+                            if (!handle.IsDone)
                                 return false;
 
-                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_Handle.Dependencies[i];
+                                var item = handle.Dependencies[i];
                                 if (!item.IsDone)
                                     return false;
                             }
@@ -104,7 +104,7 @@ namespace Saro.XAsset
         {
             if (!string.IsNullOrEmpty(m_AssetBundleName))
             {
-                m_Handle = XAssetManager.Current.LoadBundleAsync(m_AssetBundleName);
+                handle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
                 LoadState = ELoadState.LoadAssetBundle;
             }
             else

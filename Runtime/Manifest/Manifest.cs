@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
 
     public class Manifest : ScriptableObject
@@ -306,7 +306,7 @@ namespace Saro.XAsset
             UnityEditor.EditorUtility.SetDirty(manifest);
             UnityEditor.AssetDatabase.SaveAssets();
 
-            var manifestPath = $"{XAssetConfig.k_Editor_DlcOutputPath}/{XAssetConfig.k_ManifestAsset}";
+            var manifestPath = $"{MoonAssetConfig.k_Editor_DlcOutputPath}/{MoonAssetConfig.k_ManifestAsset}";
             var manifestJson = JsonUtility.ToJson(manifest);
             File.WriteAllText(manifestPath, manifestJson);
 #endif

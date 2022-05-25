@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Saro.Core;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public partial class XAssetManager
+    public partial class MoonAsset
     {
         public IAssetTable AssetTable { get; private set; }
 

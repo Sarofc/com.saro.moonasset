@@ -9,7 +9,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Saro.XAsset.Update
+namespace Saro.MoonAsset.Update
 {
     /*
      * 参考下 addressable 吧，这块逻辑有点杂乱
@@ -67,9 +67,9 @@ namespace Saro.XAsset.Update
 
         public async UniTask StartUpdate()
         {
-            var mode = XAssetManager.s_Mode;
+            var mode = MoonAsset.s_Mode;
 
-            if (mode != XAssetManager.EMode.Runtime)
+            if (mode != MoonAsset.EMode.Runtime)
             {
                 INFO($"Mode = {mode}，不热更。");
                 m_Step = EStep.UpdateSuccess;
@@ -83,7 +83,7 @@ namespace Saro.XAsset.Update
             // TODO 先申请 版本号小文件 记录有 appVersion resVersion
 
             //var localManifest = LoadLocalManifestAsync();
-            var localManifest = XAssetManager.Current.Manifest;
+            var localManifest = MoonAsset.Current.Manifest;
 
             // TODO 再比较 appVersion 和 resVersion，需要时再申请 RemoteManifest
 
@@ -155,7 +155,7 @@ namespace Saro.XAsset.Update
             {
                 INFO("Update Finish...");
 
-                XAssetManager.Current.ClearAssetReference(true);
+                MoonAsset.Current.ClearAssetReference(true);
             }
         }
 
@@ -189,7 +189,7 @@ namespace Saro.XAsset.Update
         {
             m_Step = EStep.RequestLocalVersionManifest;
 
-            var localManifest = XAssetManager.Current.LoadLocalManifest(XAssetConfig.k_ManifestAsset);
+            var localManifest = MoonAsset.Current.LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
 
             return localManifest;
         }
@@ -198,8 +198,8 @@ namespace Saro.XAsset.Update
         {
             m_Step = EStep.RequestRemoteVersionManifest;
 
-            var tmpManifestPath = XAssetConfig.k_TmpManifestAssetPath;
-            var request = UnityWebRequest.Get(XAssetConfig.GetRemoteAssetURL(XAssetConfig.k_ManifestAsset));
+            var tmpManifestPath = MoonAssetConfig.k_TmpManifestAssetPath;
+            var request = UnityWebRequest.Get(MoonAssetConfig.GetRemoteAssetURL(MoonAssetConfig.k_ManifestAsset));
             request.downloadHandler = new DownloadHandlerFile(tmpManifestPath)
             {
                 removeFileOnAbort = true
@@ -249,8 +249,8 @@ namespace Saro.XAsset.Update
             {
                 var info = new DownloadInfo
                 {
-                    DownloadUrl = XAssetConfig.GetRemoteAssetURL(asset.Name),
-                    SavePath = XAssetConfig.GetLocalAssetURL(asset.Name),
+                    DownloadUrl = MoonAssetConfig.GetRemoteAssetURL(asset.Name),
+                    SavePath = MoonAssetConfig.GetLocalAssetURL(asset.Name),
                     Size = asset.Size,
                     Hash = asset.Hash,
                     //UseRESUME = m_ManifestVersionSame, // 版本号一致时，才使用断点续传。！！！！此逻辑有误
@@ -390,7 +390,7 @@ namespace Saro.XAsset.Update
                     local = ScriptableObject.CreateInstance<Manifest>();
                 }
 
-                local.Override(remote, XAssetConfig.k_ManifestAssetPath);
+                local.Override(remote, MoonAssetConfig.k_ManifestAssetPath);
 
                 return true;
             }
@@ -431,16 +431,16 @@ namespace Saro.XAsset.Update
             m_Step = EStep.Wait;
             m_NetReachabilityChanged = false;
 
-            //XAssetComponent.Current.ClearAssetReference();
+            //MoonAsset.Current.ClearAssetReference();
 
             if (Listener != null)
             {
                 Listener.OnClear();
             }
 
-            if (Directory.Exists(XAssetConfig.k_DlcPath))
+            if (Directory.Exists(MoonAssetConfig.k_DlcPath))
             {
-                Directory.Delete(XAssetConfig.k_DlcPath, true);
+                Directory.Delete(MoonAssetConfig.k_DlcPath, true);
             }
         }
 

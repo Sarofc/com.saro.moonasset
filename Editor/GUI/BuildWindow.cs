@@ -2,10 +2,8 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
-    // TODO
-    // 允许面板上定义打包宏，不影响editor的宏
     public sealed class BuildWindow : EditorWindow
     {
         [MenuItem("MGF Tools/Build")]
@@ -18,8 +16,8 @@ namespace Saro.XAsset.Build
 
         private class Styles
         {
-            public GUIStyle style_FontItalic;
-            public GUIStyle style_FontBlodAndItalic;
+            public readonly GUIStyle style_FontItalic;
+            public readonly GUIStyle style_FontBlodAndItalic;
 
             public Styles()
             {
@@ -39,7 +37,7 @@ namespace Saro.XAsset.Build
 
         private void OnEnable()
         {
-            EnsureXAssetSettings();
+            EnsureMoonAssetSettings();
             EnsureBuildMethods();
         }
 
@@ -74,50 +72,50 @@ namespace Saro.XAsset.Build
 
         private void DrawBuildSettings()
         {
-            GUILayout.BeginVertical("box");
-
-            EditorGUILayout.LabelField("Platform: " + EditorUserBuildSettings.activeBuildTarget, s_Styles.style_FontBlodAndItalic);
-
-            switch (EditorUserBuildSettings.activeBuildTarget)
+            GUILayout.BeginVertical("helpbox");
             {
-                case BuildTarget.StandaloneOSX:
-                case BuildTarget.StandaloneWindows:
-                case BuildTarget.StandaloneWindows64:
-                    EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.Standalone));
-                    break;
-                case BuildTarget.iOS:
-                    EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.iOS));
-                    break;
-                case BuildTarget.Android:
-                    EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android));
-                    break;
-                default:
-                    EditorGUILayout.LabelField("Scripting Backend: TODO");
-                    break;
-            }
+                EditorGUILayout.LabelField("Platform: " + EditorUserBuildSettings.activeBuildTarget, s_Styles.style_FontBlodAndItalic);
 
-            EditorUserBuildSettings.development = EditorGUILayout.Toggle("Devepment Build: ", EditorUserBuildSettings.development);
-            if (EditorUserBuildSettings.development)
-            {
-                EditorGUI.indentLevel++;
-                EditorUserBuildSettings.connectProfiler = EditorGUILayout.Toggle("Connect Profiler: ", EditorUserBuildSettings.connectProfiler);
-                EditorUserBuildSettings.allowDebugging = EditorGUILayout.Toggle("Script Debugging: ", EditorUserBuildSettings.allowDebugging);
-                EditorUserBuildSettings.buildScriptsOnly = EditorGUILayout.Toggle("Build Scripts Only: ", EditorUserBuildSettings.buildScriptsOnly);
-                EditorGUI.indentLevel--;
+                switch (EditorUserBuildSettings.activeBuildTarget)
+                {
+                    case BuildTarget.StandaloneOSX:
+                    case BuildTarget.StandaloneWindows:
+                    case BuildTarget.StandaloneWindows64:
+                        EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.Standalone));
+                        break;
+                    case BuildTarget.iOS:
+                        EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.iOS));
+                        break;
+                    case BuildTarget.Android:
+                        EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android));
+                        break;
+                    default:
+                        EditorGUILayout.LabelField("Scripting Backend: TODO");
+                        break;
+                }
+
+                EditorUserBuildSettings.development = EditorGUILayout.Toggle("Devepment Build: ", EditorUserBuildSettings.development);
+                if (EditorUserBuildSettings.development)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorUserBuildSettings.connectProfiler = EditorGUILayout.Toggle("Connect Profiler: ", EditorUserBuildSettings.connectProfiler);
+                    EditorUserBuildSettings.allowDebugging = EditorGUILayout.Toggle("Script Debugging: ", EditorUserBuildSettings.allowDebugging);
+                    EditorUserBuildSettings.buildScriptsOnly = EditorGUILayout.Toggle("Build Scripts Only: ", EditorUserBuildSettings.buildScriptsOnly);
+                    EditorGUI.indentLevel--;
+                }
             }
+            GUILayout.EndVertical();
 
             EditorGUILayout.Space();
 
             if (m_Settings != null)
             {
-                Editor.CreateCachedEditor(m_Settings, typeof(XAssetSettingsInspector), ref m_CachedEditor);
+                Editor.CreateCachedEditor(m_Settings, typeof(SettingsInspector), ref m_CachedEditor);
                 if (m_CachedEditor != null)
                 {
                     m_CachedEditor.OnInspectorGUI();
                 }
             }
-
-            GUILayout.EndVertical();
         }
 
         private void DrawBuildOptions()
@@ -140,7 +138,7 @@ namespace Saro.XAsset.Build
                         for (int i = 0; i < m_BuildMethods.Count; i++)
                         {
                             var buildMethod = m_BuildMethods[i];
-                            if ((m_Settings.buildMethodOptions & (1 << i)) != 0 || buildMethod.required)
+                            if ((m_Settings.buildMethodFlag & (1 << i)) != 0 || buildMethod.required)
                             {
                                 if (buildMethod.callback.Invoke() == false)
                                 {
@@ -173,15 +171,15 @@ namespace Saro.XAsset.Build
                 rect1.width = 50f;
 
 
-                buildMethod.selected = (m_Settings.buildMethodOptions & (1 << index)) != 0 || buildMethod.required;
+                buildMethod.selected = (m_Settings.buildMethodFlag & (1 << index)) != 0 || buildMethod.required;
 
                 var tmpEnable = GUI.enabled;
                 GUI.enabled = !buildMethod.required;
                 buildMethod.selected = EditorGUI.ToggleLeft(rect1, string.Empty, buildMethod.selected);
                 GUI.enabled = tmpEnable;
 
-                if (buildMethod.selected) m_Settings.buildMethodOptions |= 1 << index;
-                else m_Settings.buildMethodOptions &= ~(1 << index);
+                if (buildMethod.selected) m_Settings.buildMethodFlag |= 1 << index;
+                else m_Settings.buildMethodFlag &= ~(1 << index);
 
                 rect1.x = 40f;
                 rect1.width = 300f;
@@ -276,7 +274,7 @@ namespace Saro.XAsset.Build
 
         private static string[] s_Toolbar = new string[]
         {
-             "XAssetSettings"
+             "MoonAssetSettings"
         };
         private Editor m_CachedEditor;
         private List<BuildMethod> m_BuildMethods;
@@ -289,7 +287,7 @@ namespace Saro.XAsset.Build
             m_BuildMethods = BuildMethod.BuildMethodCollection;
         }
 
-        private void EnsureXAssetSettings()
+        private void EnsureMoonAssetSettings()
         {
             m_Settings = BuildScript.GetSettings();
             BuildScript.GetManifest();

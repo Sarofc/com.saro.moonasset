@@ -1,18 +1,13 @@
 {
-    "name": "Saro.XAsset.Editor",
+    "name": "Saro.MoonAsset",
     "rootNamespace": "",
     "references": [
         "Saro.MGF",
-        "Saro.MGF.Editor",
-        "Saro.XAsset",
-        "Unity.ScriptableBuildPipeline",
-        "Unity.ScriptableBuildPipeline.Editor"
+        "UniTask"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

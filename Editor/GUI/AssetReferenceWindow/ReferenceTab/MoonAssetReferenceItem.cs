@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using UnityEditor.IMGUI.Controls;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public class XAssetReferenceItem : TreeViewItem
+    public class MoonAssetReferenceItem : TreeViewItem
     {
         public List<IAssetHandle> handles;
 
-        public XAssetReferenceItem(List<IAssetHandle> handles)
+        public MoonAssetReferenceItem(List<IAssetHandle> handles)
         {
             this.handles = handles;
         }

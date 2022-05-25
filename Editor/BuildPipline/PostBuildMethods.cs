@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.Callbacks;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     internal class PostBuildMethods
     {

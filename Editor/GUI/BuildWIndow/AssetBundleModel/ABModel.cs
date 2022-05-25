@@ -53,7 +53,7 @@ namespace AssetBundleBrowser.AssetBundleModel
                 if (s_DataSource == null)
                 {
                     //s_DataSource = new AssetDatabaseABDataSource();
-                    s_DataSource = new XAssetABDataSource();
+                    s_DataSource = new MoonAssetABDataSource();
                 }
                 return s_DataSource;
             }

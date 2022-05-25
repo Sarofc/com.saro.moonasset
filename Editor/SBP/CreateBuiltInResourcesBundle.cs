@@ -8,7 +8,7 @@ using UnityEditor.Build.Pipeline.Injector;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     public class CreateBuiltInResourcesBundle : IBuildTask
     {

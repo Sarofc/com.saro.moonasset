@@ -5,13 +5,13 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    internal class XAssetReferenceTree : TreeView
+    internal class MoonAssetReferenceTree : TreeView
     {
         private static Texture2D tex_warn = EditorGUIUtility.FindTexture("console.warnicon.sml");
 
-        internal XAssetReferenceTree(TreeViewState state, MultiColumnHeaderState mchs) : base(state, new MultiColumnHeader(mchs))
+        internal MoonAssetReferenceTree(TreeViewState state, MultiColumnHeaderState mchs) : base(state, new MultiColumnHeader(mchs))
         {
             showBorder = true;
             showAlternatingRowBackgrounds = true;
@@ -24,11 +24,11 @@ namespace Saro.XAsset
         {
             var root = new TreeViewItem { id = 0, depth = -1, displayName = "Root" };
 
-            var assets = XAssetManager.Current.AnalyzeHandles;
+            var assets = MoonAsset.Current.AnalyzeHandles;
 
             foreach (var item in assets)
             {
-                root.AddChild(new XAssetReferenceItem(item.Value));
+                root.AddChild(new MoonAssetReferenceItem(item.Value));
             }
 
             return root;
@@ -97,12 +97,12 @@ namespace Saro.XAsset
         protected override void RowGUI(RowGUIArgs args)
         {
             for (int i = 0; i < args.GetNumVisibleColumns(); ++i)
-                CellGUI(args.GetCellRect(i), args.item as XAssetReferenceItem, args.GetColumn(i), ref args);
+                CellGUI(args.GetCellRect(i), args.item as MoonAssetReferenceItem, args.GetColumn(i), ref args);
         }
 
-        private void CellGUI(Rect cellRect, XAssetReferenceItem item, int column, ref RowGUIArgs args)
+        private void CellGUI(Rect cellRect, MoonAssetReferenceItem item, int column, ref RowGUIArgs args)
         {
-            var bundleItem = (args.item as XAssetReferenceItem);
+            var bundleItem = (args.item as MoonAssetReferenceItem);
             if (args.item.icon == null)
                 extraSpaceBeforeIconAndLabel = 16f;
             else
@@ -175,17 +175,17 @@ namespace Saro.XAsset
             if (sortedColumns.Length == 0)
                 return;
 
-            List<XAssetReferenceItem> assetList = new List<XAssetReferenceItem>();
+            List<MoonAssetReferenceItem> assetList = new List<MoonAssetReferenceItem>();
             foreach (var item in rootItem.children)
             {
-                assetList.Add(item as XAssetReferenceItem);
+                assetList.Add(item as MoonAssetReferenceItem);
             }
             var orderedItems = InitialOrder(assetList, sortedColumns);
 
             rootItem.children = orderedItems.Cast<TreeViewItem>().ToList();
         }
 
-        private IOrderedEnumerable<XAssetReferenceItem> InitialOrder(IEnumerable<XAssetReferenceItem> myTypes, int[] columnList)
+        private IOrderedEnumerable<MoonAssetReferenceItem> InitialOrder(IEnumerable<MoonAssetReferenceItem> myTypes, int[] columnList)
         {
             SortOption sortOption = m_SortOptions[columnList[0]];
             bool ascending = multiColumnHeader.IsSortedAscending(columnList[0]);

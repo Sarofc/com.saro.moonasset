@@ -1,4 +1,4 @@
-﻿#define DEBUG_XASSET
+﻿#define DEBUG_MOONASSET
 
 using Saro.Core;
 using Saro.Net;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     /*
      *
@@ -26,7 +26,7 @@ namespace Saro.XAsset
      *
      */
 
-    public sealed partial class XAssetManager : IAssetManager
+    public sealed partial class MoonAsset : IAssetManager
     {
         /// <summary>
         /// 加载远端资源失败委托，统一托管
@@ -59,7 +59,7 @@ namespace Saro.XAsset
             }
         }
 
-        public class XAssetPolicy
+        public class MoonAssetPolicy
         {
             /// <summary>
             /// TODO dev 自动卸载资源，默认关闭
@@ -77,7 +77,7 @@ namespace Saro.XAsset
             public bool UnloadAssetWhenUnloadScene { get; set; } = true;
         }
 
-        public XAssetPolicy Policy { get; private set; } = new XAssetPolicy();
+        public MoonAssetPolicy Policy { get; private set; } = new MoonAssetPolicy();
 
         private float m_TimeToAutoUnloadAsset;
 
@@ -104,21 +104,21 @@ namespace Saro.XAsset
         /// <summary>
         /// 只内部调用，外部通过 <see cref="Main.Resolve(Type)"/> 来获取
         /// </summary>
-        internal static XAssetManager Current => Main.Resolve<IAssetManager>() as XAssetManager;
+        internal static MoonAsset Current => Main.Resolve<IAssetManager>() as MoonAsset;
 
         #region Service Impl
 
         void IService.Update()
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("[XAsset] UpdateAssets");
+            //UnityEngine.Profiling.Profiler.BeginSample("[MoonAsset] UpdateAssets");
             UpdateAssets();
             //UnityEngine.Profiling.Profiler.EndSample();
 
-            //UnityEngine.Profiling.Profiler.BeginSample("[XAsset] UpdateBundles");
+            //UnityEngine.Profiling.Profiler.BeginSample("[MoonAsset] UpdateBundles");
             UpdateBundles();
             //UnityEngine.Profiling.Profiler.EndSample();
 
-            //UnityEngine.Profiling.Profiler.BeginSample("[XAsset] AutoUnloadUnusedAssets");
+            //UnityEngine.Profiling.Profiler.BeginSample("[MoonAsset] AutoUnloadUnusedAssets");
             AutoUnloadUnusedAssets();
             //UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -143,7 +143,7 @@ namespace Saro.XAsset
 
             //ClearAssetReference();
 
-            var manifest = LoadLocalManifest(XAssetConfig.k_ManifestAsset);
+            var manifest = LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
             if (manifest != null)
             {
                 OnManifestLoaded(manifest);
@@ -573,7 +573,7 @@ namespace Saro.XAsset
                     {
                         Info = new DownloadInfo
                         {
-                            DownloadUrl = XAssetConfig.GetRemoteAssetURL(remoteAssets.Name),
+                            DownloadUrl = MoonAssetConfig.GetRemoteAssetURL(remoteAssets.Name),
                             SavePath = assetPath,
                             Hash = remoteAssets.Hash,
                             Size = remoteAssets.Size,
@@ -686,21 +686,21 @@ namespace Saro.XAsset
 #endif
         }
 
-        [System.Diagnostics.Conditional("DEBUG_XASSET")]
+        [System.Diagnostics.Conditional("DEBUG_MOONASSET")]
         internal static void INFO(string msg)
         {
-            Log.INFO("XAsset", msg);
+            Log.INFO("MoonAsset", msg);
         }
 
-        [System.Diagnostics.Conditional("DEBUG_XASSET")]
+        [System.Diagnostics.Conditional("DEBUG_MOONASSET")]
         internal static void WARN(string msg)
         {
-            Log.WARN("XAsset", msg);
+            Log.WARN("MoonAsset", msg);
         }
 
         internal static void ERROR(string msg)
         {
-            Log.ERROR("XAsset", msg);
+            Log.ERROR("MoonAsset", msg);
         }
 
         #endregion

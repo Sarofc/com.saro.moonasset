@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public class BundleAssetAsyncHandle : BundleAssetHandle
     {
@@ -24,27 +24,27 @@ namespace Saro.XAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (Error != null || m_BundleHandle.Error != null)
+                            if (Error != null || bundleHandle.Error != null)
                                 return true;
 
-                            for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_BundleHandle.Dependencies[i];
+                                var item = bundleHandle.Dependencies[i];
                                 if (item.Error != null)
                                     return true;
                             }
 
-                            if (!m_BundleHandle.IsDone)
+                            if (!bundleHandle.IsDone)
                                 return false;
 
-                            for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_BundleHandle.Dependencies[i];
+                                var item = bundleHandle.Dependencies[i];
                                 if (!item.IsDone)
                                     return false;
                             }
 
-                            if (m_BundleHandle.Bundle == null)
+                            if (bundleHandle.Bundle == null)
                             {
                                 Error = "assetBundle == null";
                                 return true;
@@ -52,11 +52,11 @@ namespace Saro.XAsset
 
                             if (typeof(Component).IsAssignableFrom(AssetType))
                             {
-                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, typeof(GameObject));
+                                m_AssetBundleRequest = bundleHandle.Bundle.LoadAssetAsync(AssetUrl, typeof(GameObject));
                             }
                             else
                             {
-                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, AssetType);
+                                m_AssetBundleRequest = bundleHandle.Bundle.LoadAssetAsync(AssetUrl, AssetType);
                             }
 
                             LoadState = ELoadState.LoadAsset;
@@ -92,23 +92,23 @@ namespace Saro.XAsset
         {
             get
             {
-                var bundleProgress = m_BundleHandle.Progress;
-                if (m_BundleHandle.Dependencies.Count <= 0)
+                var bundleProgress = bundleHandle.Progress;
+                if (bundleHandle.Dependencies.Count <= 0)
                     return bundleProgress * 0.3f + (m_AssetBundleRequest != null ? m_AssetBundleRequest.progress * 0.7f : 0);
-                for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
+                for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
                 {
-                    var item = m_BundleHandle.Dependencies[i];
+                    var item = bundleHandle.Dependencies[i];
                     bundleProgress += item.Progress;
                 }
 
-                return bundleProgress / (m_BundleHandle.Dependencies.Count + 1) * 0.3f +
+                return bundleProgress / (bundleHandle.Dependencies.Count + 1) * 0.3f +
                        (m_AssetBundleRequest != null ? m_AssetBundleRequest.progress * 0.7f : 0);
             }
         }
 
         internal override void Load()
         {
-            m_BundleHandle = XAssetManager.Current.LoadBundleAsync(m_AssetBundleName);
+            bundleHandle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
             LoadState = ELoadState.LoadAssetBundle;
         }
 

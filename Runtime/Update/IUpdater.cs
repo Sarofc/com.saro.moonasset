@@ -1,5 +1,5 @@
 ﻿
-namespace Saro.XAsset.Update
+namespace Saro.MoonAsset.Update
 {
     public interface IUpdater
     {

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public class BundleAsyncHandle : BundleHandle
     {
@@ -19,10 +19,7 @@ namespace Saro.XAsset
                 }
                 return base.Bundle;
             }
-            internal set
-            {
-                base.Bundle = value;
-            }
+            internal set { base.Bundle = value; }
         }
 
         public override bool IsDone
@@ -50,10 +47,7 @@ namespace Saro.XAsset
             }
         }
 
-        public override float Progress
-        {
-            get { return m_Request != null ? m_Request.progress : 0f; }
-        }
+        public override float Progress => m_Request != null ? m_Request.progress : 0f;
 
         internal override void Load()
         {

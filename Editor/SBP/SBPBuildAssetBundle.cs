@@ -5,7 +5,7 @@ using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Pipeline.Interfaces;
 using UnityEditor.Build.Pipeline.Tasks;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     public static class SBPBuildAssetBundle
     {
@@ -18,7 +18,8 @@ namespace Saro.XAsset.Build
         {
             var buildContent = new BundleBuildContent(assetBundleBuilds);
 
-            var buildParams = new BundleBuildParameters(buildTarget, BuildPipeline.GetBuildTargetGroup(buildTarget), outputPath);
+            var buildParams =
+                new BundleBuildParameters(buildTarget, BuildPipeline.GetBuildTargetGroup(buildTarget), outputPath);
 
             buildParams.ContiguousBundles = true;
             buildParams.WriteLinkXML = true;
@@ -46,7 +47,8 @@ namespace Saro.XAsset.Build
             }
 
             var customTasks = CustomBuildTasks();
-            ReturnCode exitCode = ContentPipeline.BuildAssetBundles(buildParams, buildContent, out results, customTasks);
+            ReturnCode exitCode =
+                ContentPipeline.BuildAssetBundles(buildParams, buildContent, out results, customTasks);
             return exitCode;
         }
 
@@ -70,8 +72,8 @@ namespace Saro.XAsset.Build
             buildTasks.Add(new CalculateAssetDependencyData());
             buildTasks.Add(new StripUnusedSpriteSources());
             buildTasks.Add(new CreateBuiltInResourcesBundle(
-                "builtindata" + XAssetConfig.k_AssetExtension,
-                "builtinshader" + XAssetConfig.k_AssetExtension));
+                "builtindata" + MoonAssetConfig.k_AssetExtension,
+                "builtinshader" + MoonAssetConfig.k_AssetExtension));
             //buildTasks.Add(new PostDependencyCallback());
 
             // Packing

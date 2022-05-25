@@ -39,7 +39,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
 
                     for (int count = 0; count < list.Count; count++)
                     {
-                        if (list[count].Name == nameof(XAssetABDataSource))
+                        if (list[count].Name == nameof(MoonAssetABDataSource))
                             //if (list[count].Name == "AssetDatabaseABDataSource")
                             properList[0] = list[count];
                         else if (list[count] != null)

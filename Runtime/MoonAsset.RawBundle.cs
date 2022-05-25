@@ -4,9 +4,9 @@ using Saro.Net;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public partial class XAssetManager
+    public partial class MoonAsset
     {
         public IReadOnlyDictionary<string, RawBundleRef> RawAssetMap => m_Manifest.RawAssetMap;
 
@@ -58,9 +58,9 @@ namespace Saro.XAsset
 
                 OnLoadRemoteAsset?.Invoke(assetPath, false);
 
-                var downloadUrl = XAssetConfig.GetRemoteAssetURL(remoteAssets.Name);
+                var downloadUrl = MoonAssetConfig.GetRemoteAssetURL(remoteAssets.Name);
 
-                int maxRetry = XAssetConfig.s_MaxDownloadRetryCount;
+                int maxRetry = MoonAssetConfig.s_MaxDownloadRetryCount;
                 var retry = maxRetry;
 
                 bool downloadSuccess = false;

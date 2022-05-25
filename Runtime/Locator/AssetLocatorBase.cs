@@ -1,13 +1,13 @@
-﻿namespace Saro.XAsset
+﻿namespace Saro.MoonAsset
 {
     /// <summary>
     /// 资源定位器，用于获取 资源路径
     /// </summary>
-    public abstract class BaseAssetLocator
+    public abstract class AssetLocatorBase
     {
-        protected string m_Directory;
+        protected readonly string m_Directory;
 
-        public BaseAssetLocator(string directory)
+        public AssetLocatorBase(string directory)
         {
             m_Directory = directory;
         }
@@ -21,7 +21,7 @@
         /// <returns>本地是否存在指定资源</returns>
         protected abstract bool GetAssetPath(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets);
 
-        public static implicit operator XAssetManager.AssetLocator(BaseAssetLocator locator)
+        public static implicit operator MoonAsset.AssetLocator(AssetLocatorBase locator)
         {
             return locator.GetAssetPath;
         }

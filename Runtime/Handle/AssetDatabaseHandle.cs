@@ -1,4 +1,4 @@
-﻿namespace Saro.XAsset
+﻿namespace Saro.MoonAsset
 {
     public sealed class AssetDatabaseHandle : AssetHandle
     {
@@ -9,7 +9,7 @@
 #endif
 
             if (Asset == null)
-                XAssetManager.ERROR($"load asset failed. AssetUrl: {AssetUrl}");
+                MoonAsset.ERROR($"load asset failed. AssetUrl: {AssetUrl}");
         }
 
         internal override void Unload(bool unloadAllObjects = true)

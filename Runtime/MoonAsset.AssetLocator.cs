@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
-    public partial class XAssetManager
+    public partial class MoonAsset
     {
         /// <summary>
         /// 资源路径定位器

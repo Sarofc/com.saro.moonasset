@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     public class BuildMethod
     {
@@ -39,7 +39,7 @@ namespace Saro.XAsset.Build
                 var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
                 foreach (var method in methods)
                 {
-                    var attr = method.GetCustomAttribute<XAssetBuildMethodAttribute>();
+                    var attr = method.GetCustomAttribute<MoonAssetBuildMethodAttribute>();
                     if (attr != null)
                     {
                         var buildMethod = new BuildMethod()
@@ -95,11 +95,11 @@ namespace Saro.XAsset.Build
     }
 
     /// <summary>
-    /// XAsset自动化打包流程方法
+    /// MoonAsset自动化打包流程方法
     /// <see cref="BuildMethods"/>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-    public sealed class XAssetBuildMethodAttribute : Attribute
+    public sealed class MoonAssetBuildMethodAttribute : Attribute
     {
         /// <summary>
         /// 执行顺序
@@ -118,7 +118,7 @@ namespace Saro.XAsset.Build
         /// </summary>
         public string tooltip;
 
-        public XAssetBuildMethodAttribute(int executeOrder, string displayName, bool required = false, string tooltip = null)
+        public MoonAssetBuildMethodAttribute(int executeOrder, string displayName, bool required = false, string tooltip = null)
         {
             this.executeOrder = executeOrder;
             this.displayName = displayName;

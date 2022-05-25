@@ -6,11 +6,11 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     internal partial class BuildMethods : IBuildProcessor
     {
-        [XAssetBuildMethod(-2, "ClearAssetBundleNames", false)]
+        [MoonAssetBuildMethod(-2, "ClearAssetBundleNames", false)]
         private static void ClearAssetBundles()
         {
             BuildScript.ClearAssetBundleNames();
@@ -22,7 +22,7 @@ namespace Saro.XAsset.Build
         //    XAssetBuildScript.MarkAssetBundleNames();
         //}
 
-        [XAssetBuildMethod(0, "ApplyBuildGroups", false)]
+        [MoonAssetBuildMethod(0, "ApplyBuildGroups", false)]
         private static void ApplyBuildGroups()
         {
             BuildScript.ApplyBuildGroups();
@@ -42,7 +42,7 @@ namespace Saro.XAsset.Build
                     foreach (var file in files)
                     {
                         var fileName = Path.GetFileName(file);
-                        var dst = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_RawFolder + "/" + fileName;
+                        var dst = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder + "/" + fileName;
 
                         File.Copy(file, dst, true);
                     }
@@ -59,7 +59,7 @@ namespace Saro.XAsset.Build
             }
         }
 
-        [XAssetBuildMethod(20, "Build AssetBundles", false)]
+        [MoonAssetBuildMethod(20, "Build AssetBundles", false)]
         private static void BuildAssetBundles()
         {
             var watch = new System.Diagnostics.Stopwatch();
@@ -76,7 +76,7 @@ namespace Saro.XAsset.Build
         }
 
 
-        [XAssetBuildMethod(40, "Build RawBundles", tooltip = "非AB资源打包成vfs文件")]
+        [MoonAssetBuildMethod(40, "Build RawBundles", tooltip = "非AB资源打包成vfs文件")]
         private static void BuildRawBundles()
         {
             BuildScript.BuildRawBundles();
@@ -87,7 +87,7 @@ namespace Saro.XAsset.Build
             buildGroups.ApplyResVersionBuildAsset();
         }
 
-        [XAssetBuildMethod(41, "Add ManfestVersion")]
+        [MoonAssetBuildMethod(41, "Add ManfestVersion")]
         private static void AddManfestVersion()
         {
             var manifest = BuildScript.GetManifest();
@@ -98,7 +98,7 @@ namespace Saro.XAsset.Build
             Manifest.Build(manifest);
         }
 
-        [XAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false)]
+        [MoonAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false)]
         private static void UploadAssetsToFileServerUseManifest()
         {
             var buildGroups = BuildScript.GetBuildGroups();
@@ -114,13 +114,13 @@ namespace Saro.XAsset.Build
                 }
             }
 
-            var folderToUpload = XAssetConfig.k_Editor_DlcOutputPath;
+            var folderToUpload = MoonAssetConfig.k_Editor_DlcOutputPath;
             if (!Directory.Exists(folderToUpload)) return;
 
             var localFiles = new List<string>();
             var remoteFiles = new List<string>();
 
-            var manifestPath = folderToUpload + "/" + XAssetConfig.k_ManifestAsset;
+            var manifestPath = folderToUpload + "/" + MoonAssetConfig.k_ManifestAsset;
             var manifest = Manifest.Create(manifestPath);
             if (manifest == null)
             {
@@ -136,11 +136,11 @@ namespace Saro.XAsset.Build
                 var name = item.Value.Name;
 
                 localFiles.Add(folderToUpload + "/" + name);
-                remoteFiles.Add(XAssetConfig.GetRemoteAssetURL(null, name));
+                remoteFiles.Add(MoonAssetConfig.GetRemoteAssetURL(null, name));
             }
 
             localFiles.Add(manifestPath);
-            remoteFiles.Add(XAssetConfig.GetRemoteAssetURL(null, XAssetConfig.k_ManifestAsset));
+            remoteFiles.Add(MoonAssetConfig.GetRemoteAssetURL(null, MoonAssetConfig.k_ManifestAsset));
 
             // TODO filter file
 
@@ -156,7 +156,7 @@ namespace Saro.XAsset.Build
             GC.Collect();
         }
 
-        [XAssetBuildMethod(45, "Copy to DLC Folder", false)]
+        [MoonAssetBuildMethod(45, "Copy to DLC Folder", false)]
         private static void CopyDlcFolderToStreammingAssets()
         {
             var sb = new StringBuilder(102400);
@@ -166,7 +166,7 @@ namespace Saro.XAsset.Build
 
             var group = BuildScript.GetBuildGroups();
 
-            var destFolder = Application.streamingAssetsPath + "/" + XAssetConfig.k_Dlc + "/" + XAssetConfig.GetCurrentPlatformName();
+            var destFolder = Application.streamingAssetsPath + "/" + MoonAssetConfig.k_Dlc + "/" + MoonAssetConfig.GetCurrentPlatformName();
 
             if (Directory.Exists(destFolder))
             {
@@ -178,7 +178,7 @@ namespace Saro.XAsset.Build
                 Directory.CreateDirectory(destFolder);
             }
 
-            if (!Directory.Exists(XAssetConfig.k_Editor_DlcOutputPath)) return;
+            if (!Directory.Exists(MoonAssetConfig.k_Editor_DlcOutputPath)) return;
 
             // bundle
             var builtInBundles = group.GetBuiltInAssetBundles(manifest);
@@ -186,7 +186,7 @@ namespace Saro.XAsset.Build
             sb.AppendLine("*bundle:" + builtInBundles.Length);
             foreach (var fileName in builtInBundles)
             {
-                var src = XAssetConfig.k_Editor_DlcOutputPath + "/" + fileName;
+                var src = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + fileName;
                 var dest = Path.Combine(destFolder, fileName);
 
                 var directory = Path.GetDirectoryName(dest);
@@ -212,7 +212,7 @@ namespace Saro.XAsset.Build
             sb.AppendLine("*custom asset:" + builtInCustomAssets.Length);
             foreach (var fileName in builtInCustomAssets)
             {
-                var src = XAssetConfig.k_Editor_DlcOutputPath + "/" + fileName;
+                var src = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + fileName;
                 var dest = Path.Combine(destFolder, fileName);
 
                 var directory = Path.GetDirectoryName(dest);
@@ -235,10 +235,10 @@ namespace Saro.XAsset.Build
             // manifest
             sb.AppendLine();
             sb.AppendLine("*manifest:");
-            var manifestPath = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_ManifestAsset;
+            var manifestPath = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_ManifestAsset;
             if (File.Exists(manifestPath))
             {
-                var dest = destFolder + "/" + XAssetConfig.k_ManifestAsset;
+                var dest = destFolder + "/" + MoonAssetConfig.k_ManifestAsset;
                 File.Copy(manifestPath, dest);
                 sb.Append(manifestPath).AppendLine();
             }
@@ -252,7 +252,7 @@ namespace Saro.XAsset.Build
             AssetDatabase.Refresh();
         }
 
-        [XAssetBuildMethod(50, "Build Player", false)]
+        [MoonAssetBuildMethod(50, "Build Player", false)]
         private static void BuildPlayer()
         {
             FileUtility.BuildIndexes();

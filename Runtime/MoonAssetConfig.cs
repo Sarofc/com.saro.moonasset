@@ -4,14 +4,14 @@
 using UnityEditor;
 #endif
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
 #if UNITY_EDITOR
-    public partial class XAssetConfig // Editor Part
+    public static partial class MoonAssetConfig // Editor Part
     {
-        public const string k_Editor_BuildGroupsPath = "Assets/XAsset/BuildGroups.asset";
-        public const string k_Editor_SettingsPath = "Assets/XAsset/Settings.asset";
-        public const string k_Editor_ManifestAssetPath = "Assets/XAsset/Manifest.asset";
+        public const string k_Editor_BuildGroupsPath = "Assets/MoonAsset/BuildGroups.asset";
+        public const string k_Editor_SettingsPath = "Assets/MoonAsset/Settings.asset";
+        public const string k_Editor_ManifestAssetPath = "Assets/MoonAsset/Manifest.asset";
 
         public readonly static string k_Editor_BuildOutputPath = $"ExtraAssets/Build/{GetCurrentPlatformName()}";
         public readonly static string k_Editor_DlcOutputPath = $"ExtraAssets/{k_Dlc}/{GetCurrentPlatformName()}";
@@ -38,9 +38,9 @@ namespace Saro.XAsset
     }
 #endif
 
-    public partial class XAssetConfig // Runtime Part
+    public partial class MoonAssetConfig // Runtime Part
     {
-        public static string RemoteAssetUrl => XAssetManager.Current.RemoteAssetUrl;
+        public static string RemoteAssetUrl => MoonAsset.Current.RemoteAssetUrl;
         public static int s_MaxDownloadRetryCount = 3;
 
         public const string k_Dlc = "DLC";

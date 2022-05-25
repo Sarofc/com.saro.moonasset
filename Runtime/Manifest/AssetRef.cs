@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     [Serializable]
     public class AssetRef

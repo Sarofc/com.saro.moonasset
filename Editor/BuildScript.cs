@@ -1,15 +1,15 @@
-﻿
-using Saro.IO;
+﻿using Saro.IO;
 using Saro.Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     public static class BuildScript
     {
@@ -20,8 +20,8 @@ namespace Saro.XAsset.Build
             {
                 var assetBundleName = allAssetBundleNames[i];
                 if (EditorUtility.DisplayCancelableProgressBar(
-                                    string.Format("Clear AssetBundles {0}/{1}", i, allAssetBundleNames.Length), assetBundleName,
-                                    i * 1f / allAssetBundleNames.Length))
+                        string.Format("Clear AssetBundles {0}/{1}", i, allAssetBundleNames.Length), assetBundleName,
+                        i * 1f / allAssetBundleNames.Length))
                     break;
 
                 AssetDatabase.RemoveAssetBundleName(assetBundleName, true);
@@ -82,7 +82,7 @@ namespace Saro.XAsset.Build
         {
             var targetAppName = GetBuildTargetAppName(EditorUserBuildSettings.activeBuildTarget);
 
-            var outputFolder = XAssetConfig.k_Editor_BuildOutputPath;
+            var outputFolder = MoonAssetConfig.k_Editor_BuildOutputPath;
 
             if (outputFolder.Length == 0)
                 return;
@@ -97,13 +97,25 @@ namespace Saro.XAsset.Build
             if (targetAppName == null)
                 return;
 
+            // TODO 打AB的时候，需不需要设置宏？
+            // 配置宏定义
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            var overrideSymbols = GetSettings().overrideSymbols;
+            PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var tmpSymbols);
+            if (overrideSymbols)
+            {
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget,
+                    GetSettings().scriptingDefineSymbols);
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+                
+                // Log.ERROR("Set SetScriptingDefineSymbols");
+            }
+
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = builtInScenes,
                 locationPathName = outputFolder + "/" + targetAppName,
-
-                // TODO 配置宏定义 看看是什么机制再说
-                //extraScriptingDefines = GetSettings().ExtraScriptingDefines,
 
                 target = EditorUserBuildSettings.activeBuildTarget,
             };
@@ -115,12 +127,18 @@ namespace Saro.XAsset.Build
 
             if (GetSettings().detailBuildReport)
             {
-#if UNITY_2020_1_OR_NEWER
                 buildPlayerOptions.options |= BuildOptions.DetailedBuildReport;
-#endif
             }
 
             BuildPipeline.BuildPlayer(buildPlayerOptions);
+
+            if (overrideSymbols)
+            {
+                // 还原宏
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, tmpSymbols);
+                
+                // Log.ERROR("Reset SetScriptingDefineSymbols");
+            }
 
             //Utility.OpenFolderUtility.OpenDirectory(outputFolder);
             //Debug.LogError("Open Folder: " + outputFolder);
@@ -136,7 +154,7 @@ namespace Saro.XAsset.Build
             var buildGroups = BuildScript.GetBuildGroups();
             if (buildGroups.appendAssetHash)
             {
-                var directory = XAssetConfig.k_Editor_DlcOutputPath;
+                var directory = MoonAssetConfig.k_Editor_DlcOutputPath;
 
                 var manifest = BuildScript.GetManifest();
 
@@ -145,7 +163,7 @@ namespace Saro.XAsset.Build
                 {
                     // TODO test
                     string fileName = item.name;
-                    var newName = XAssetConfig.AppendHashToFileName(fileName, item.hash);
+                    var newName = MoonAssetConfig.AppendHashToFileName(fileName, item.hash);
 
                     item.name = newName;
 
@@ -164,7 +182,7 @@ namespace Saro.XAsset.Build
 
         private static void SBPBuildAssetBundles()
         {
-            var outputFolder = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_AssetBundleFoler;
+            var outputFolder = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_AssetBundleFoler;
 
             if (Directory.Exists(outputFolder))
                 Directory.Delete(outputFolder, true);
@@ -177,7 +195,8 @@ namespace Saro.XAsset.Build
             var buildGroups = GetBuildGroups();
             var assetBundleBuilds = buildGroups.GetAssetBundleBuilds();
 
-            var retCode = SBPBuildAssetBundle.BuildAssetBundles(outputFolder, assetBundleBuilds, options, buildTarget, out var result);
+            var retCode = SBPBuildAssetBundle.BuildAssetBundles(outputFolder, assetBundleBuilds, options, buildTarget,
+                out var result);
 
             if (retCode != ReturnCode.Success)
             {
@@ -189,7 +208,7 @@ namespace Saro.XAsset.Build
             //var sbpManifest = ScriptableObject.CreateInstance<CompatibilityAssetBundleManifest>();
             //sbpManifest.SetResults(result.BundleInfos);
             //File.WriteAllText(outputFolder, JsonUtility.ToJson(sbpManifest));
-            //XAssetComponent.ERROR(JsonUtility.ToJson(sbpManifest));
+            //MoonAsset.ERROR(JsonUtility.ToJson(sbpManifest));
 
             var bundleInfos = result.BundleInfos;
             var manifest = GetManifest();
@@ -216,7 +235,7 @@ namespace Saro.XAsset.Build
                     {
                         bundleRefs.Add(new BundleRef
                         {
-                            name = XAssetConfig.k_AssetBundleFoler + "/" + bundle,
+                            name = MoonAssetConfig.k_AssetBundleFoler + "/" + bundle,
                             deps = Array.ConvertAll(deps, input => bundle2Ids[input]),
                             size = fs.Length,
                             hash = HashUtility.GetMd5HexHash(fs), // 改用自己的md5hash
@@ -277,7 +296,7 @@ namespace Saro.XAsset.Build
                 var buildGroups = GetBuildGroups();
                 var customGroups = buildGroups.rawGroups;
 
-                var outputDirectory = XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_RawFolder;
+                var outputDirectory = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder;
                 if (Directory.Exists(outputDirectory))
                 {
                     Directory.Delete(outputDirectory, true);
@@ -309,14 +328,16 @@ namespace Saro.XAsset.Build
 
                     if (assets.Count > 0)
                     {
-                        using (var vfs = VFileSystem.Open(dst, FileMode.CreateNew, FileAccess.Write, assets.Count, assets.Count))
+                        using (var vfs = VFileSystem.Open(dst, FileMode.CreateNew, FileAccess.Write, assets.Count,
+                                   assets.Count))
                         {
                             for (int i = 0; i < assets.Count; i++)
                             {
                                 var asset = assets[i];
                                 var fileName = asset.name;
 
-                                EditorUtility.DisplayProgressBar("BuildCustomAssets", $"pack {group.groupName}/{fileName}", ((i + 1) / (float)assets.Count));
+                                EditorUtility.DisplayProgressBar("BuildCustomAssets",
+                                    $"pack {group.groupName}/{fileName}", ((i + 1) / (float)assets.Count));
 
                                 var dir = Path.GetDirectoryName(fileName).Replace("\\", "/");
                                 dir = string.IsNullOrEmpty(dir) ? group.groupName : group.groupName + "/" + dir;
@@ -350,7 +371,7 @@ namespace Saro.XAsset.Build
                         {
                             bundleRefs.Add(new RawBundleRef
                             {
-                                name = XAssetConfig.k_RawFolder + "/" + group.groupName,
+                                name = MoonAssetConfig.k_RawFolder + "/" + group.groupName,
                                 size = fs.Length,
                                 hash = HashUtility.GetMd5HexHash(fs),
                             });
@@ -382,7 +403,7 @@ namespace Saro.XAsset.Build
             var buildGroups = BuildScript.GetBuildGroups();
             if (buildGroups.appendAssetHash)
             {
-                var directory = XAssetConfig.k_Editor_DlcOutputPath;
+                var directory = MoonAssetConfig.k_Editor_DlcOutputPath;
 
                 var manifest = BuildScript.GetManifest();
 
@@ -391,7 +412,7 @@ namespace Saro.XAsset.Build
                 {
                     // TODO test
                     var fileName = item.name;
-                    var newName = XAssetConfig.AppendHashToFileName(fileName, item.hash);
+                    var newName = MoonAssetConfig.AppendHashToFileName(fileName, item.hash);
 
                     item.name = newName;
 
@@ -454,17 +475,17 @@ namespace Saro.XAsset.Build
 
         public static Manifest GetManifest()
         {
-            return GetAsset<Manifest>(XAssetConfig.k_Editor_ManifestAssetPath);
+            return GetAsset<Manifest>(MoonAssetConfig.k_Editor_ManifestAssetPath);
         }
 
         internal static BuildGroups GetBuildGroups()
         {
-            return GetAsset<BuildGroups>(XAssetConfig.k_Editor_BuildGroupsPath);
+            return GetAsset<BuildGroups>(MoonAssetConfig.k_Editor_BuildGroupsPath);
         }
 
         internal static Settings GetSettings()
         {
-            return GetAsset<Settings>(XAssetConfig.k_Editor_SettingsPath);
+            return GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
         }
     }
 }

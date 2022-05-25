@@ -1,11 +1,11 @@
-﻿using Saro.XAsset;
-using Saro.XAsset.Build;
+﻿using Saro.MoonAsset;
+using Saro.MoonAsset.Build;
 using System;
 using System.Collections.Generic;
 
 namespace AssetBundleBrowser.AssetBundleDataSource
 {
-    internal class XAssetABDataSource : ABDataSource
+    internal class MoonAssetABDataSource : ABDataSource
     {
         public BuildGroups BuildGroups
         {
@@ -22,7 +22,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
 
         public static List<ABDataSource> CreateDataSources()
         {
-            var op = new XAssetABDataSource();
+            var op = new MoonAssetABDataSource();
             var retList = new List<ABDataSource>();
             retList.Add(op);
             return retList;
@@ -32,7 +32,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
         {
             get
             {
-                return "XAsset";
+                return "MoonAsset";
             }
         }
 
@@ -101,7 +101,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
 
         public string GetRealAssetBundleFolderPath()
         {
-            return XAssetConfig.k_Editor_DlcOutputPath + "/" + XAssetConfig.k_AssetBundleFoler;
+            return MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_AssetBundleFoler;
         }
     }
 

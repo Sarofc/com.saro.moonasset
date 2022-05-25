@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     [Serializable]
     public class RawGroup
@@ -15,7 +15,7 @@ namespace Saro.XAsset.Build
         public string tip = "加载路径为 {groupName}/{assets[0]}";
 
         [Tooltip("搜索通配符，多个之间请用,(逗号)隔开")]
-        public string searchPattern;
+        public string searchPattern = "*";
 
         [Tooltip("打包路径，相对路径，unity工程目录")]
         public string[] searchPaths;

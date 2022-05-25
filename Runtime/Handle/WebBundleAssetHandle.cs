@@ -1,6 +1,6 @@
 ﻿using Saro.Net;
 
-namespace Saro.XAsset
+namespace Saro.MoonAsset
 {
     public sealed class WebBundleAssetHandle : BundleHandle
     {
@@ -8,7 +8,7 @@ namespace Saro.XAsset
 
         public DownloadInfo Info { get; set; }
 
-        public int RetryCount { get; set; } = XAssetConfig.s_MaxDownloadRetryCount;
+        public int RetryCount { get; set; } = MoonAssetConfig.s_MaxDownloadRetryCount;
 
         public override string Error
         {
@@ -44,7 +44,7 @@ namespace Saro.XAsset
                         }
                         else
                         {
-                            XAssetManager.Current.OnLoadRemoteAssetError?.Invoke(AssetUrl);
+                            MoonAsset.Current.OnLoadRemoteAssetError?.Invoke(AssetUrl);
 
                             finish = true;
                         }
@@ -54,7 +54,7 @@ namespace Saro.XAsset
                     {
                         LoadState = ELoadState.Loaded;
 
-                        XAssetManager.Current.OnLoadRemoteAsset?.Invoke(Info.SavePath, true);
+                        MoonAsset.Current.OnLoadRemoteAsset?.Invoke(Info.SavePath, true);
                     }
                 }
 
@@ -71,7 +71,7 @@ namespace Saro.XAsset
         {
             StartDownload();
 
-            XAssetManager.Current.OnLoadRemoteAsset?.Invoke(Info.DownloadUrl, false);
+            MoonAsset.Current.OnLoadRemoteAsset?.Invoke(Info.DownloadUrl, false);
 
             LoadState = ELoadState.LoadAssetBundle;
         }

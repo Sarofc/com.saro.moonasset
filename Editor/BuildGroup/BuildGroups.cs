@@ -11,7 +11,7 @@ using UnityEngine;
 //sbp 不支持变体
 //https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
 
-namespace Saro.XAsset.Build
+namespace Saro.MoonAsset.Build
 {
     public partial class BuildGroups : ScriptableObject
     {
@@ -171,11 +171,11 @@ namespace Saro.XAsset.Build
 
             if (nameBundleByHash)
             {
-                return Utility.HashUtility.GetMd5HexHash(asset) + XAssetConfig.k_AssetExtension;
+                return Utility.HashUtility.GetMd5HexHash(asset) + MoonAssetConfig.k_AssetExtension;
             }
             else
             {
-                var newName = asset + XAssetConfig.k_AssetExtension;
+                var newName = asset + MoonAssetConfig.k_AssetExtension;
                 newName.ReplaceFast('/', '_').ReplaceFast('\\', '_').ToLowerFast();
                 return newName;
             }
