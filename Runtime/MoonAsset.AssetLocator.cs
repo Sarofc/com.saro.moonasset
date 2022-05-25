@@ -4,6 +4,41 @@ namespace Saro.MoonAsset
 {
     public partial class MoonAsset
     {
+        public MoonAsset() : this(GetDefaultLocators())
+        {
+        }
+
+        public MoonAsset(IList<AssetLocator> locators)
+        {
+            AddAssetLocators(locators);
+        }
+
+        /// <summary>
+        /// MoonAsset 默认 AssetLocator 加载列表
+        /// </summary>
+        public static IList<AssetLocator> GetDefaultLocators()
+        {
+            var locators = new List<AssetLocator>();
+
+            // 1. 编辑器模式直接加载源文件
+            // 2. 模拟模式，优先加载打包目录
+#if UNITY_EDITOR
+            if (MoonAsset.s_Mode == MoonAsset.EMode.Simulate)
+            {
+                locators.Add(new LocalAssetLocator(MoonAssetConfig.k_Editor_DlcOutputPath));
+            }
+#endif
+
+            // 1.先加载dlc目录
+            locators.Add(new LocalAssetLocator(MoonAssetConfig.k_DlcPath));
+            // 2.再加载base目录
+            locators.Add(new LocalAssetLocator(MoonAssetConfig.k_BasePath));
+            // 3.都没有就下载到dlc目录，再加载
+            locators.Add(new RemoteAssetLocator(MoonAssetConfig.k_DlcPath));
+
+            return locators;
+        }
+
         /// <summary>
         /// 资源路径定位器
         /// </summary>
@@ -14,6 +49,14 @@ namespace Saro.MoonAsset
         public delegate bool AssetLocator(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets);
 
         private readonly List<AssetLocator> m_AssetLocators = new();
+
+        public void AddAssetLocators(IList<AssetLocator> locators)
+        {
+            foreach (var locator in locators)
+            {
+                AddAssetLocator(locator);
+            }
+        }
 
         public void AddAssetLocator(AssetLocator locator)
         {

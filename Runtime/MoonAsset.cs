@@ -31,7 +31,10 @@ namespace Saro.MoonAsset
         /// <summary>
         /// 加载远端资源失败委托，统一托管
         /// </summary>
-        public Action<string> OnLoadRemoteAssetError { get; set; } = (assetName) => { ERROR($" <color=blue>[auto]</color> OnLoadRemoteAssetError. download error. assetName: {assetName}"); };
+        public Action<string> OnLoadRemoteAssetError { get; set; } = (assetName) =>
+        {
+            ERROR($" <color=blue>[auto]</color> OnLoadRemoteAssetError. download error. assetName: {assetName}");
+        };
 
         /// <summary>
         /// 加载远端资源状态委托，false:开始加载 true:完成加载
@@ -133,6 +136,7 @@ namespace Saro.MoonAsset
 
         #region API
 
+        // TODO 需不需要异步？
         private void Initialize()
         {
 #if !UNITY_EDITOR
@@ -467,7 +471,9 @@ namespace Saro.MoonAsset
         /// </summary>
         public int MaxBundlesPerFrame { get; set; } = 0;
 
-        private readonly Dictionary<string, BundleHandle> m_BundleHandleMap = new(128, StringComparer.Ordinal); // 已加载bundle
+        private readonly Dictionary<string, BundleHandle>
+            m_BundleHandleMap = new(128, StringComparer.Ordinal); // 已加载bundle
+
         private readonly List<BundleHandle> m_LoadingBundleHandles = new(64); // 正在加载bundle
         private readonly Queue<BundleHandle> m_PendingBundleHandles = new(64); // 待加载bundle
         private readonly List<BundleHandle> m_UnusedBundleHandles = new(128); // 引用为0，待卸载bundle
@@ -623,7 +629,8 @@ namespace Saro.MoonAsset
                 m_LoadingBundleHandles.Count < MaxBundlesPerFrame
                )
             {
-                var toLoadCount = Math.Min(MaxBundlesPerFrame - m_LoadingBundleHandles.Count, m_PendingBundleHandles.Count);
+                var toLoadCount = Math.Min(MaxBundlesPerFrame - m_LoadingBundleHandles.Count,
+                    m_PendingBundleHandles.Count);
                 while (toLoadCount > 0)
                 {
                     var handle = m_PendingBundleHandles.Dequeue();
