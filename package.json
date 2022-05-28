@@ -6,7 +6,7 @@
   "unity": "2021.3",
   "dependencies": {
     "com.unity.scriptablebuildpipeline": "1.19.6",
-    "com.saro.mgf": "https://github.com/Sarofc/com.saro.mgf.git#v0.1"
+    "com.saro.mgf": "https://github.com/Sarofc/com.saro.mgf.git#v0.1.0"
   },
   "keywords": [
     "asset",
