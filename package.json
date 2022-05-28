@@ -1,6 +1,6 @@
 {
   "name": "com.saro.moonasset",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "displayName": "MoonAsset-MGF",
   "description": "Unity资源加载、构建框架，提供一键式出包，并且支持自定义构建流程。",
   "unity": "2021.3",
