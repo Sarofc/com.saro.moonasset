@@ -13,7 +13,7 @@ namespace Saro.MoonAsset.Update
 {
     /*
      * 参考下 addressable 吧，这块逻辑有点杂乱
-     * 
+     *
      * TODO
      *
      * 1.还是要校验文件完整性，使用md5
@@ -155,7 +155,7 @@ namespace Saro.MoonAsset.Update
             {
                 INFO("Update Finish...");
 
-                MoonAsset.Current.ClearAssetReference(true);
+                MoonAsset.Current.ClearAssetReference(false);
             }
         }
 
