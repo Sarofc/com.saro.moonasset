@@ -45,6 +45,9 @@ namespace Saro.MoonAsset.Build
                         NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
 
                     PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out Target.scriptingDefineSymbols);
+
+                    EditorUtility.SetDirty(Target);
+                    AssetDatabase.SaveAssets();
                 }
 
                 EditorGUILayout.PropertyField(
