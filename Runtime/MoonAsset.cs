@@ -421,12 +421,13 @@ namespace Saro.MoonAsset
                 return handle;
             }
 
-            if (GetAssetBundleName(path, out string assetBundleName)) // 没缓存取 ab 里拿
+            if (GetAssetBundleName(path, out string assetBundleName, out string subAssetPath)) // 没缓存取 ab 里拿
             {
                 handle = async
                     ? new BundleAssetAsyncHandle(assetBundleName)
                     : new BundleAssetHandle(assetBundleName);
             }
+            // TODO provider 模式要加在这里，找不到assetbundle，就启动provider模式，加载有特殊逻辑的资源
             else
             {
                 // 需要直接加载remote的资源文件，自己去下载得了，这里就不管了
@@ -448,7 +449,9 @@ namespace Saro.MoonAsset
             }
 
             handle.AssetUrl = path;
+            handle.SubAssetUrl = subAssetPath;
             handle.AssetType = type;
+
             m_AssetHandleMap.Add(handle.AssetUrl, handle);
             m_LoadingAssetHandles.Add(handle);
             handle.Load();
@@ -480,9 +483,11 @@ namespace Saro.MoonAsset
 
         public IReadOnlyDictionary<string, BundleRef> AssetToBundle => m_Manifest.AssetToBundle;
         public IReadOnlyDictionary<string, BundleRef[]> BundleToDeps => m_Manifest.BundleToDeps;
+        public IReadOnlyDictionary<string, string> SpriteToAtlas => m_Manifest.SpriteToAtlas;
 
-        internal bool GetAssetBundleName(string path, out string assetBundleName)
+        internal bool GetAssetBundleName(string assetPath, out string assetBundleName, out string subAssetPath)
         {
+            subAssetPath = null;
 #if UNITY_EDITOR
             if (s_Mode == EMode.Editor)
             {
@@ -491,7 +496,15 @@ namespace Saro.MoonAsset
             }
 #endif
 
-            var ret = AssetToBundle.TryGetValue(path, out var bundleRef);
+            // TODO provider 模式，提供二次寻址
+            // 检查是否是spriteatlas
+            if (SpriteToAtlas.TryGetValue(assetPath, out var atlasPath))
+            {
+                subAssetPath = atlasPath;
+                assetPath = atlasPath;
+            }
+
+            var ret = AssetToBundle.TryGetValue(assetPath, out var bundleRef);
             if (ret)
             {
                 assetBundleName = bundleRef.name;
@@ -500,7 +513,7 @@ namespace Saro.MoonAsset
             {
                 assetBundleName = null;
 
-                ERROR($"GetAssetBundleName failed. path: {path}");
+                ERROR($"GetAssetBundleName failed. path: {assetPath}");
             }
 
             return ret;

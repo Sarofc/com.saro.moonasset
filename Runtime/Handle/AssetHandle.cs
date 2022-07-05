@@ -21,6 +21,11 @@ namespace Saro.MoonAsset
         public string AssetUrl { get; set; }
 
         /// <summary>
+        /// 间接寻址用，sprite(AssetsUrl) -> spriteatlas(SubAssetUrl) -> assetbundle
+        /// </summary>
+        public string SubAssetUrl { get; set; }
+
+        /// <summary>
         /// 资源加载状态
         /// </summary>
         public ELoadState LoadState { get; protected set; }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using UnityEngine;
+using UnityEngine.U2D;
 
 namespace Saro.MoonAsset
 {
@@ -24,40 +26,38 @@ namespace Saro.MoonAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (Error != null || bundleHandle.Error != null)
+                            if (Error != null || m_BundleHandle.Error != null)
                                 return true;
 
-                            for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
                             {
-                                var item = bundleHandle.Dependencies[i];
+                                var item = m_BundleHandle.Dependencies[i];
                                 if (item.Error != null)
                                     return true;
                             }
 
-                            if (!bundleHandle.IsDone)
+                            if (!m_BundleHandle.IsDone)
                                 return false;
 
-                            for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
                             {
-                                var item = bundleHandle.Dependencies[i];
+                                var item = m_BundleHandle.Dependencies[i];
                                 if (!item.IsDone)
                                     return false;
                             }
 
-                            if (bundleHandle.Bundle == null)
+                            if (m_BundleHandle.Bundle == null)
                             {
                                 Error = "assetBundle == null";
                                 return true;
                             }
 
-                            if (typeof(Component).IsAssignableFrom(AssetType))
-                            {
-                                m_AssetBundleRequest = bundleHandle.Bundle.LoadAssetAsync(AssetUrl, typeof(GameObject));
-                            }
+                            if (IsComponent)
+                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, typeof(GameObject));
+                            else if (IsSpriteAtlas)
+                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(SubAssetUrl, typeof(SpriteAtlas));
                             else
-                            {
-                                m_AssetBundleRequest = bundleHandle.Bundle.LoadAssetAsync(AssetUrl, AssetType);
-                            }
+                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, AssetType);
 
                             LoadState = ELoadState.LoadAsset;
                             break;
@@ -73,10 +73,15 @@ namespace Saro.MoonAsset
                 if (!m_AssetBundleRequest.isDone)
                     return false;
 
-                if (typeof(Component).IsAssignableFrom(AssetType))
+                if (IsComponent)
                 {
                     var gameObject = m_AssetBundleRequest.asset as GameObject;
                     Asset = gameObject.GetComponent(AssetType);
+                }
+                else if (IsSpriteAtlas)
+                {
+                    var atlas = m_AssetBundleRequest.asset as SpriteAtlas;
+                    Asset = atlas.GetSprite(Path.GetFileNameWithoutExtension(AssetUrl));
                 }
                 else
                 {
@@ -92,23 +97,23 @@ namespace Saro.MoonAsset
         {
             get
             {
-                var bundleProgress = bundleHandle.Progress;
-                if (bundleHandle.Dependencies.Count <= 0)
+                var bundleProgress = m_BundleHandle.Progress;
+                if (m_BundleHandle.Dependencies.Count <= 0)
                     return bundleProgress * 0.3f + (m_AssetBundleRequest != null ? m_AssetBundleRequest.progress * 0.7f : 0);
-                for (int i = 0, max = bundleHandle.Dependencies.Count; i < max; i++)
+                for (int i = 0, max = m_BundleHandle.Dependencies.Count; i < max; i++)
                 {
-                    var item = bundleHandle.Dependencies[i];
+                    var item = m_BundleHandle.Dependencies[i];
                     bundleProgress += item.Progress;
                 }
 
-                return bundleProgress / (bundleHandle.Dependencies.Count + 1) * 0.3f +
+                return bundleProgress / (m_BundleHandle.Dependencies.Count + 1) * 0.3f +
                        (m_AssetBundleRequest != null ? m_AssetBundleRequest.progress * 0.7f : 0);
             }
         }
 
         internal override void Load()
         {
-            bundleHandle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
+            m_BundleHandle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
             LoadState = ELoadState.LoadAssetBundle;
         }
 

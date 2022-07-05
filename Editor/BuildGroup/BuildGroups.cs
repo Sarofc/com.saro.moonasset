@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.U2D;
 using UnityEngine;
+using UnityEngine.U2D;
 
 //sbp 不支持变体
 //https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
@@ -37,10 +39,11 @@ namespace Saro.MoonAsset.Build
             ".cs",
             ".js",
             ".boo",
-            ".spriteatlas",
-            ".spriteatlasv2",
             ".giparams",
             "lightingdata.asset",
+
+            //".spriteatlas",
+            //".spriteatlasv2",
         };
 
         [Tooltip("构建的版本号")]
@@ -61,6 +64,9 @@ namespace Saro.MoonAsset.Build
 
         [ReadOnly]
         public RuleBundle[] ruleBundles = new RuleBundle[0];
+
+        [ReadOnly]
+        public RuleSprite[] ruleSprites = new RuleSprite[0];
 
         #region API
 
@@ -140,13 +146,14 @@ namespace Saro.MoonAsset.Build
             // 文件夹也跳过
             if (Directory.Exists(asset)) return false;
 
-            var fileName = Path.GetFileName(asset).ToLower();
+            //var fileName = Path.GetFileName(asset).ToLower();
+            var fileName = Path.GetFileName(asset);
 
             var buildGroups = BuildScript.GetBuildGroups();
             var excludeAssets = buildGroups.excludeAssets;
             foreach (var item in excludeAssets)
             {
-                if (fileName.EndsWith(item))
+                if (fileName.EndsWith(item, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -270,7 +277,7 @@ namespace Saro.MoonAsset.Build
             int i = 0, max = m_ConflictedAssets.Count;
             foreach (var item in m_ConflictedAssets)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"优化冲突{i}/{max}", item.Key, i / (float) max))
+                if (EditorUtility.DisplayCancelableProgressBar($"优化冲突{i}/{max}", item.Key, i / (float)max))
                     break;
 
                 var list = item.Value;
@@ -287,7 +294,7 @@ namespace Saro.MoonAsset.Build
             max = m_NeedOptimizedAssets.Count;
             foreach (var item in m_NeedOptimizedAssets)
             {
-                if (EditorUtility.DisplayCancelableProgressBar($"优化冗余{i}/{max}", item, i / (float) max))
+                if (EditorUtility.DisplayCancelableProgressBar($"优化冗余{i}/{max}", item, i / (float)max))
                     break;
 
                 OptimizeAsset(item);
@@ -303,7 +310,7 @@ namespace Saro.MoonAsset.Build
             {
                 var bundle = item.Key;
 
-                if (EditorUtility.DisplayCancelableProgressBar($"分析依赖{i}/{max}", bundle, i / (float) max))
+                if (EditorUtility.DisplayCancelableProgressBar($"分析依赖{i}/{max}", bundle, i / (float)max))
                     break;
 
                 var assetPaths = bundle2Assets[bundle];
@@ -358,7 +365,7 @@ namespace Saro.MoonAsset.Build
             {
                 var group = bundleGroups[i];
 
-                if (EditorUtility.DisplayCancelableProgressBar($"收集资源{i}/{max}", group.searchPath, i / (float) max))
+                if (EditorUtility.DisplayCancelableProgressBar($"收集资源{i}/{max}", group.searchPath, i / (float)max))
                     break;
 
                 ApplyBundleGroup(group);
@@ -388,15 +395,15 @@ namespace Saro.MoonAsset.Build
                 switch (group.nameBy)
                 {
                     case BundleGroup.ENameBy.Path:
-                    {
-                        m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
-                        break;
-                    }
+                        {
+                            m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
+                            break;
+                        }
                     case BundleGroup.ENameBy.Directory:
-                    {
-                        m_Asset2Bundles[asset] = RuledAssetBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
-                        break;
-                    }
+                        {
+                            m_Asset2Bundles[asset] = RuledAssetBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
+                            break;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -405,9 +412,78 @@ namespace Saro.MoonAsset.Build
 
         #region SpriteAtlas
 
-        private Dictionary<string, HashSet<string>> m_SpriteAtlasTracker = new Dictionary<string, HashSet<string>>();
+        /*
+         * 
+         * sbp模式，只打了 atlas，且勾选include，sprite散图不打进ab，首包场景里没有引用图集的散图，结果只有 ab 里有一张图集，没有散图，此结果是正确的。
+         * 
+         * 1. 由于散图不参与打包，且上层逻辑希望直接通过散图路径加载，所以需要包装一层，见SpriteAtlasRef。
+         * 2. 多个预制体，引用一个图集，也是没问题的。
+         * 3. 如果首包场景里引用到了打包的图集，那么会冗余一张图集，没有散图。
+         * 
+         */
+
+        private readonly Dictionary<string, HashSet<string>> m_SpriteAtlasTracker = new(128);
+        private readonly Dictionary<string, string> m_SpriteToAtlas = new(128);
 
         private void ProcessSpriteAtlases()
+        {
+            // 保险起见，确保图集引用正确。因为图集改动后，spriteatlas引用不会立刻生效
+            SpriteAtlasUtility.PackAllAtlases(EditorUserBuildSettings.activeBuildTarget);
+
+            m_SpriteAtlasTracker.Clear();
+            m_SpriteToAtlas.Clear();
+
+            var atlasPaths = m_Asset2Bundles.Keys.ToArray();
+            for (int i = 0; i < atlasPaths.Length; i++)
+            {
+                string atlasPath = atlasPaths[i];
+
+                if (!atlasPath.EndsWith(".spriteatlas")) continue;
+
+                if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float)atlasPaths.Length))
+                    break;
+
+                var bundleName = RuledAssetBundleName(atlasPath);
+
+                foreach (var assetPath in AssetDatabase.GetDependencies(atlasPath))
+                {
+                    if (assetPath.EndsWith(".spriteatlas")) continue;
+
+                    if (!ValidateAsset(assetPath))
+                    {
+                        continue;
+                    }
+
+                    if (!m_SpriteAtlasTracker.TryGetValue(assetPath, out var bundles))
+                    {
+                        bundles = new HashSet<string>();
+                        m_SpriteAtlasTracker.Add(assetPath, bundles);
+                    }
+
+                    bundles.Add(bundleName);
+
+                    if (bundles.Count > 1)
+                        Log.ERROR($"ProcessSpriteAtlases. {assetPath} duplicated at [{string.Join(",", bundles)}] {bundleName}");
+
+                    m_SpriteToAtlas.Add(assetPath, atlasPath); // 记录sprite到atlas的查找表
+                }
+            }
+
+            foreach (var item in m_SpriteAtlasTracker)
+            {
+                var assetPath = item.Key;
+                //var bundleName = item.Value.First();
+
+                m_Asset2Bundles.Remove(assetPath); // 在图集里的散图，不要参与打包
+
+                //Log.ERROR($"remove sprite from atlas: {assetPath}");
+            }
+
+            ruleSprites = m_SpriteToAtlas.Select(x => new RuleSprite { spritePath = x.Key, atlasPath = x.Value }).ToArray();
+        }
+
+        // 适用于 legacy 打包管线，spriteatlas不打包，图集打成一个ab
+        private void ProcessSpriteAtlases_Legacy()
         {
             m_SpriteAtlasTracker.Clear();
 
@@ -415,7 +491,7 @@ namespace Saro.MoonAsset.Build
             for (int i = 0; i < atlasPaths.Length; i++)
             {
                 string atlasPath = atlasPaths[i];
-                if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float) atlasPaths.Length))
+                if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float)atlasPaths.Length))
                     break;
 
                 var bundleName = RuledAssetBundleName(atlasPath);
@@ -445,7 +521,7 @@ namespace Saro.MoonAsset.Build
                 var assetPath = item.Key;
                 var bundleName = item.Value.First();
 
-                // 将散图打进图集包
+                //将散图打进图集包
                 m_Asset2Bundles[assetPath] = bundleName;
             }
         }

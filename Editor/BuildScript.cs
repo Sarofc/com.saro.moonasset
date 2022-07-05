@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace Saro.MoonAsset.Build
 {
+    /*
+     * 需要切换到当前需要打包的平台，然后才能打包
+     */
     public static class BuildScript
     {
         public static void ClearAssetBundleNames()
@@ -108,7 +111,7 @@ namespace Saro.MoonAsset.Build
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget,
                     GetSettings().scriptingDefineSymbols);
                 UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-                
+
                 // Log.ERROR("Set SetScriptingDefineSymbols");
             }
 
@@ -136,7 +139,7 @@ namespace Saro.MoonAsset.Build
             {
                 // 还原宏
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, tmpSymbols);
-                
+
                 // Log.ERROR("Reset SetScriptingDefineSymbols");
             }
 
@@ -213,7 +216,6 @@ namespace Saro.MoonAsset.Build
             var bundleInfos = result.BundleInfos;
             var manifest = GetManifest();
             var dirs = new List<string>();
-            var assetRefs = new List<AssetRef>();
             var bundles = bundleInfos.Keys.ToArray();
             var bundle2Ids = new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -223,7 +225,7 @@ namespace Saro.MoonAsset.Build
                 bundle2Ids[bundle] = index;
             }
 
-            var bundleRefs = new List<BundleRef>();
+            var bundleRefs = new List<BundleRef>(bundles.Length);
             for (var index = 0; index < bundles.Length; index++)
             {
                 var bundle = bundles[index];
@@ -249,6 +251,7 @@ namespace Saro.MoonAsset.Build
                 }
             }
 
+            var assetRefs = new List<AssetRef>(buildGroups.ruleAssets.Length);
             for (var i = 0; i < buildGroups.ruleAssets.Length; i++)
             {
                 var item = buildGroups.ruleAssets[i];
@@ -265,9 +268,9 @@ namespace Saro.MoonAsset.Build
                 {
                     var asset = new AssetRef
                     {
+                        name = Path.GetFileName(path),
                         bundle = bundle2Ids[item.bundle],
                         dir = index,
-                        name = Path.GetFileName(path),
                     };
                     assetRefs.Add(asset);
                 }
@@ -278,9 +281,48 @@ namespace Saro.MoonAsset.Build
                 }
             }
 
+            var ruleSprites = buildGroups.ruleSprites;
+            var atlasRefs = new List<SpriteAtlasRef>(ruleSprites.Length);
+            for (int i = 0; i < ruleSprites.Length; i++)
+            {
+                var ruleSprite = ruleSprites[i];
+                var atlasRef = new SpriteAtlasRef();
+
+                {
+                    var spritePath = ruleSprite.spritePath;
+                    var dirSprite = Path.GetDirectoryName(spritePath).Replace("\\", "/");
+                    var indexSprite = dirs.FindIndex(o => o.Equals(dirSprite));
+                    if (indexSprite == -1)
+                    {
+                        indexSprite = dirs.Count;
+                        dirs.Add(dirSprite);
+                    }
+
+                    atlasRef.sprite = Path.GetFileName(spritePath);
+                    atlasRef.dirSprite = indexSprite;
+                }
+
+                {
+                    var atlasPath = ruleSprite.atlasPath;
+                    var dirAtlas = Path.GetDirectoryName(atlasPath).Replace("\\", "/");
+                    var indexAtlas = dirs.FindIndex(o => o.Equals(dirAtlas));
+                    if (indexAtlas == -1)
+                    {
+                        indexAtlas = dirs.Count;
+                        dirs.Add(dirAtlas);
+                    }
+
+                    atlasRef.atlas = Path.GetFileName(atlasPath);
+                    atlasRef.dirAtlas = indexAtlas;
+                }
+
+                atlasRefs.Add(atlasRef);
+            }
+
             manifest.dirs = dirs.ToArray();
             manifest.assets = assetRefs.ToArray();
             manifest.bundles = bundleRefs.ToArray();
+            manifest.atlases = atlasRefs.ToArray();
 
             EditorUtility.SetDirty(manifest);
             AssetDatabase.SaveAssets();

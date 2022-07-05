@@ -110,13 +110,25 @@ namespace Saro.MoonAsset
 
         #endregion
 
+        #region SpriteAtlas
+
+        [Header("SpriteToAtlas")]
+        public SpriteAtlasRef[] atlases = new SpriteAtlasRef[0];
+
+        #endregion
+
         /// <summary>
         /// 运行时 对比表
         /// [IRemoteAssets.Name, IRemoteAssets]
         /// </summary>
         public IReadOnlyDictionary<string, IRemoteAssets> RemoteAssets => m_RemoteAssets;
-
         private Dictionary<string, IRemoteAssets> m_RemoteAssets;
+
+        /// <summary>
+        /// spriteatlas查找表，可以直接使用sprite路径加载，上层可以对图集无感知
+        /// </summary>
+        public Dictionary<string, string> SpriteToAtlas => m_SpriteToAtlas;
+        private Dictionary<string, string> m_SpriteToAtlas;
 
         public void Load(string content)
         {
@@ -207,6 +219,18 @@ namespace Saro.MoonAsset
             {
                 var rawBundle = rawBundles[i];
                 m_RemoteAssets.Add(((IRemoteAssets)rawBundle).Name, rawBundle);
+            }
+
+            // spriteatlas
+            if (m_SpriteToAtlas != null && m_SpriteToAtlas.Count <= atlases.Length) m_SpriteToAtlas.Clear();
+            else m_SpriteToAtlas = new Dictionary<string, string>(atlases.Length);
+
+            for (int i = 0; i < atlases.Length; i++)
+            {
+                var item = atlases[i];
+                var spritePath = string.Format("{0}/{1}", dirs[item.dirSprite], item.sprite);
+                var atlasPath = string.Format("{0}/{1}", dirs[item.dirAtlas], item.atlas);
+                m_SpriteToAtlas.Add(spritePath, atlasPath);
             }
         }
 

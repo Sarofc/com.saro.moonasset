@@ -10,12 +10,12 @@ namespace Saro.MoonAsset
         protected readonly LoadSceneMode m_LoadSceneMode;
         protected readonly string m_SceneName;
         protected string m_AssetBundleName;
-        protected BundleHandle handle;
+        protected BundleHandle m_Handle;
 
         public SceneAssetHandle(string path, bool additive)
         {
             AssetUrl = path;
-            MoonAsset.Current.GetAssetBundleName(path, out m_AssetBundleName);
+            MoonAsset.Current.GetAssetBundleName(path, out m_AssetBundleName, out _);
             m_SceneName = Path.GetFileNameWithoutExtension(AssetUrl);
             m_LoadSceneMode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
         }
@@ -29,8 +29,8 @@ namespace Saro.MoonAsset
         {
             if (!string.IsNullOrEmpty(m_AssetBundleName))
             {
-                handle = MoonAsset.Current.LoadBundle(m_AssetBundleName);
-                if (handle != null)
+                m_Handle = MoonAsset.Current.LoadBundle(m_AssetBundleName);
+                if (m_Handle != null)
                     SceneManager.LoadScene(m_SceneName, m_LoadSceneMode);
             }
             else
@@ -51,8 +51,8 @@ namespace Saro.MoonAsset
 
         internal override void Unload(bool unloadAllObjects = true)
         {
-            if (handle != null)
-                handle.DecreaseRefCount();
+            if (m_Handle != null)
+                m_Handle.DecreaseRefCount();
 
             if (m_LoadSceneMode == LoadSceneMode.Additive)
             {
@@ -60,7 +60,7 @@ namespace Saro.MoonAsset
                     SceneManager.UnloadSceneAsync(m_SceneName);
             }
 
-            handle = null;
+            m_Handle = null;
         }
     }
 }

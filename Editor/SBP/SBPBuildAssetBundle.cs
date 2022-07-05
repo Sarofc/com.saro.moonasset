@@ -57,8 +57,8 @@ namespace Saro.MoonAsset.Build
             var buildTasks = new List<IBuildTask>();
 
             // Setup
-            buildTasks.Add(new SwitchToBuildPlatform());
-            buildTasks.Add(new RebuildSpriteAtlasCache());
+            //buildTasks.Add(new SwitchToBuildPlatform()); // 不需要了，每次打包前，自己手动切，一般打包机一个平台一个工程。
+            //buildTasks.Add(new RebuildSpriteAtlasCache()); // 在 BuildGroups.ProcessSpriteAtlases 提前调用过了，不需要再调用了
 
             // Player Scripts
             buildTasks.Add(new BuildPlayerScripts());

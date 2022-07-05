@@ -17,19 +17,19 @@ namespace Saro.MoonAsset
         {
             get
             {
-                if (handle == null)
+                if (m_Handle == null)
                     return m_AsyncOperation == null ? 0 : m_AsyncOperation.progress;
 
-                var bundleProgress = handle.Progress;
-                if (handle.Dependencies.Count <= 0)
+                var bundleProgress = m_Handle.Progress;
+                if (m_Handle.Dependencies.Count <= 0)
                     return bundleProgress * 0.3f + (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
-                for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
+                for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
                 {
-                    var item = handle.Dependencies[i];
+                    var item = m_Handle.Dependencies[i];
                     bundleProgress += item.Progress;
                 }
 
-                return bundleProgress / (handle.Dependencies.Count + 1) * 0.3f +
+                return bundleProgress / (m_Handle.Dependencies.Count + 1) * 0.3f +
                        (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
             }
         }
@@ -44,22 +44,22 @@ namespace Saro.MoonAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (handle == null || handle.Error != null)
+                            if (m_Handle == null || m_Handle.Error != null)
                                 return true;
 
-                            for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
                             {
-                                var item = handle.Dependencies[i];
+                                var item = m_Handle.Dependencies[i];
                                 if (item.Error != null)
                                     return true;
                             }
 
-                            if (!handle.IsDone)
+                            if (!m_Handle.IsDone)
                                 return false;
 
-                            for (int i = 0, max = handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
                             {
-                                var item = handle.Dependencies[i];
+                                var item = m_Handle.Dependencies[i];
                                 if (!item.IsDone)
                                     return false;
                             }
@@ -104,7 +104,7 @@ namespace Saro.MoonAsset
         {
             if (!string.IsNullOrEmpty(m_AssetBundleName))
             {
-                handle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
+                m_Handle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
                 LoadState = ELoadState.LoadAssetBundle;
             }
             else
