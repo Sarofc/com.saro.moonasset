@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace AssetBundleBrowser.AssetBundleModel
+namespace Saro.AssetBundleBrowser.AssetBundleModel
 {
     internal sealed class BundleTreeItem : TreeViewItem
     {

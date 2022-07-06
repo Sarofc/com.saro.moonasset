@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     internal class InspectTreeItem : TreeViewItem
     {

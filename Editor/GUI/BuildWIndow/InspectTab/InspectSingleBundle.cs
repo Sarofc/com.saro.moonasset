@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     internal class SingleBundleInspector
     {

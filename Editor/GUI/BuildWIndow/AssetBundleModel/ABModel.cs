@@ -1,4 +1,4 @@
-﻿using AssetBundleBrowser.AssetBundleDataSource;
+﻿using Saro.AssetBundleBrowser.AssetBundleDataSource;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace AssetBundleBrowser.AssetBundleModel
+namespace Saro.AssetBundleBrowser.AssetBundleModel
 {
     /// <summary>
     /// Static class holding model data for Asset Bundle Browser tool. Data in Model is read from DataSource, but is not pushed.  

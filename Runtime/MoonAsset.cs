@@ -41,31 +41,26 @@ namespace Saro.MoonAsset
         /// </summary>
         public Action<string, bool> OnLoadRemoteAsset { get; set; }
 
+        /// <summary>
+        /// 当前资源清单
+        /// </summary>
         public Manifest Manifest => m_Manifest;
         private Manifest m_Manifest;
 
-        public string RemoteVersionUrl
-        {
-            get
-            {
-                if (m_Manifest == null) return null;
-                return m_Manifest.remoteVersionUrl;
-            }
-        }
+        /// <summary>
+        /// TODO 当前manifest指向的远端资源版本地址
+        /// </summary>
+        public string RemoteVersionUrl => m_Manifest != null ? m_Manifest.remoteVersionUrl : null;
 
-        public string RemoteAssetUrl
-        {
-            get
-            {
-                if (m_Manifest == null) return null;
-                return m_Manifest.remoteAssetUrl;
-            }
-        }
+        // <summary>
+        /// 当前manifest指向的远端资源地址
+        /// </summary>
+        public string RemoteAssetUrl => m_Manifest != null ? m_Manifest.remoteAssetUrl : null;
 
         public class MoonAssetPolicy
         {
             /// <summary>
-            /// TODO dev 自动卸载资源，默认关闭
+            /// 自动卸载资源，默认关闭
             /// </summary>
             public bool AutoUnloadAsset { get; set; } = false;
 
@@ -86,23 +81,17 @@ namespace Saro.MoonAsset
 
         public enum EMode
         {
-            /// <summary>
-            /// 使用 AssetDatabase
-            /// </summary>
-            Editor = 0,
+            [Tooltip("使用 AssetDatabase，仅限编辑器")]
+            AssetDatabase = 0,
 
-            /// <summary>
-            /// 加载 ExtraAssets 目录
-            /// </summary>
+            [Tooltip("使用 AssetBundle，加载 ExtraAssets 目录")]
             Simulate = 1,
 
-            /// <summary>
-            /// 真机
-            /// </summary>
+            [Tooltip("使用 AssetBundle，真机模式")]
             Runtime = 2,
         }
 
-        public static EMode s_Mode = EMode.Editor;
+        public static EMode s_Mode = EMode.AssetDatabase;
 
         /// <summary>
         /// 只内部调用，外部通过 <see cref="Main.Resolve(Type)"/> 来获取
@@ -136,7 +125,6 @@ namespace Saro.MoonAsset
 
         #region API
 
-        // TODO 需不需要异步？
         private void Initialize()
         {
 #if !UNITY_EDITOR
@@ -293,7 +281,7 @@ namespace Saro.MoonAsset
         internal Manifest LoadLocalManifest(string manifestName)
         {
 #if UNITY_EDITOR
-            if (s_Mode == EMode.Editor)
+            if (s_Mode == EMode.AssetDatabase)
             {
                 return null;
             }
@@ -417,17 +405,15 @@ namespace Saro.MoonAsset
             {
                 handle.Update();
                 handle.IncreaseRefCount();
-                //m_LoadingAssetHandles.Add(handle); // TODO 不应该再加一次？
                 return handle;
             }
 
             if (GetAssetBundleName(path, out string assetBundleName, out string subAssetPath)) // 没缓存取 ab 里拿
             {
                 handle = async
-                    ? new BundleAssetAsyncHandle(assetBundleName)
-                    : new BundleAssetHandle(assetBundleName);
+                    ? new BundleAssetAsyncHandle(assetBundleName, subAssetPath)
+                    : new BundleAssetHandle(assetBundleName, subAssetPath);
             }
-            // TODO provider 模式要加在这里，找不到assetbundle，就启动provider模式，加载有特殊逻辑的资源
             else
             {
                 // 需要直接加载remote的资源文件，自己去下载得了，这里就不管了
@@ -449,7 +435,6 @@ namespace Saro.MoonAsset
             }
 
             handle.AssetUrl = path;
-            handle.SubAssetUrl = subAssetPath;
             handle.AssetType = type;
 
             m_AssetHandleMap.Add(handle.AssetUrl, handle);
@@ -489,14 +474,13 @@ namespace Saro.MoonAsset
         {
             subAssetPath = null;
 #if UNITY_EDITOR
-            if (s_Mode == EMode.Editor)
+            if (s_Mode == EMode.AssetDatabase)
             {
                 assetBundleName = null;
                 return false;
             }
 #endif
 
-            // TODO provider 模式，提供二次寻址
             // 检查是否是spriteatlas
             if (SpriteToAtlas.TryGetValue(assetPath, out var atlasPath))
             {
@@ -580,7 +564,6 @@ namespace Saro.MoonAsset
             {
                 handle.Update();
                 handle.IncreaseRefCount();
-                //m_LoadingBundleHandles.Add(handle); // TODO 不应该再加一次了？
                 return handle;
             }
 
@@ -707,21 +690,12 @@ namespace Saro.MoonAsset
         }
 
         [System.Diagnostics.Conditional("DEBUG_MOONASSET")]
-        internal static void INFO(string msg)
-        {
-            Log.INFO("MoonAsset", msg);
-        }
+        internal static void INFO(string msg) => Log.INFO("MoonAsset", msg);
 
         [System.Diagnostics.Conditional("DEBUG_MOONASSET")]
-        internal static void WARN(string msg)
-        {
-            Log.WARN("MoonAsset", msg);
-        }
+        internal static void WARN(string msg) => Log.WARN("MoonAsset", msg);
 
-        internal static void ERROR(string msg)
-        {
-            Log.ERROR("MoonAsset", msg);
-        }
+        internal static void ERROR(string msg) => Log.ERROR("MoonAsset", msg);
 
         #endregion
     }

@@ -100,20 +100,8 @@ namespace Saro.MoonAsset.Build
             if (targetAppName == null)
                 return;
 
-            // TODO 打AB的时候，需不需要设置宏？
             // 配置宏定义
-            var namedBuildTarget =
-                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            var overrideSymbols = GetSettings().overrideSymbols;
-            PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var tmpSymbols);
-            if (overrideSymbols)
-            {
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget,
-                    GetSettings().scriptingDefineSymbols);
-                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-                // Log.ERROR("Set SetScriptingDefineSymbols");
-            }
+            var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
 
             var buildPlayerOptions = new BuildPlayerOptions
             {
@@ -135,20 +123,61 @@ namespace Saro.MoonAsset.Build
 
             BuildPipeline.BuildPlayer(buildPlayerOptions);
 
-            if (overrideSymbols)
-            {
-                // 还原宏
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, tmpSymbols);
-
-                // Log.ERROR("Reset SetScriptingDefineSymbols");
-            }
+            EndOverrideSymbols(overrideSymbols, originalSymbols);
 
             //Utility.OpenFolderUtility.OpenDirectory(outputFolder);
             //Debug.LogError("Open Folder: " + outputFolder);
         }
 
+        private static int s_OverrideSymbolsIndex = 0;
+        // 开始覆盖宏
+        public static (bool overrideSymbols, string[] originalSymbols) BeginOverrideSymbols()
+        {
+            if (s_OverrideSymbolsIndex++ > 0)
+            {
+                s_OverrideSymbolsIndex = 0;
+                Log.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
+            }
+
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            var overrideSymbols = GetSettings().overrideSymbols;
+            if (overrideSymbols)
+            {
+                PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var originalSymbols);
+                var newSymbols = GetSettings().scriptingDefineSymbols;
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+                Log.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
+
+                return (overrideSymbols, originalSymbols);
+            }
+
+            return (overrideSymbols, null);
+        }
+
+        // 还原宏
+        public static void EndOverrideSymbols(bool overrideSymbols, string[] originalSymbols)
+        {
+            if (overrideSymbols)
+            {
+                var namedBuildTarget =
+                    NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalSymbols);
+
+                Log.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
+            }
+
+            s_OverrideSymbolsIndex--;
+
+        }
+
         public static void BuildAssetBundles()
         {
+            // TODO 打AB的时候，需不需要设置宏？
+
             SBPBuildAssetBundles();
         }
 
@@ -164,7 +193,6 @@ namespace Saro.MoonAsset.Build
                 // bundle append hash
                 foreach (var item in manifest.bundles)
                 {
-                    // TODO test
                     string fileName = item.name;
                     var newName = MoonAssetConfig.AppendHashToFileName(fileName, item.hash);
 
@@ -452,7 +480,6 @@ namespace Saro.MoonAsset.Build
                 // customAssets append hash
                 foreach (var item in manifest.rawBundles)
                 {
-                    // TODO test
                     var fileName = item.name;
                     var newName = MoonAssetConfig.AppendHashToFileName(fileName, item.hash);
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -9,13 +10,19 @@ namespace Saro.MoonAsset
         protected readonly string m_AssetBundleName;
         protected BundleHandle m_BundleHandle;
 
+        /// <summary>
+        /// 间接寻址用，sprite(AssetsUrl) -> spriteatlas(SubAssetUrl) -> assetbundle
+        /// </summary>
+        protected string m_SubAssetUrl;
+
         public bool IsComponent => typeof(Component).IsAssignableFrom(AssetType);
 
-        public bool IsSpriteAtlas => SubAssetUrl != null && (SubAssetUrl.EndsWith(".spriteatlas") || SubAssetUrl.EndsWith(".spriteatlasv2"));
+        public bool IsSpriteAtlas => m_SubAssetUrl != null && (m_SubAssetUrl.EndsWith(".spriteatlas", StringComparison.Ordinal) || m_SubAssetUrl.EndsWith(".spriteatlasv2", StringComparison.Ordinal));
 
-        public BundleAssetHandle(string bundle)
+        public BundleAssetHandle(string bundle, string subAsserUrl)
         {
             m_AssetBundleName = bundle;
+            m_SubAssetUrl = subAsserUrl;
         }
 
         internal override void Load()
@@ -33,7 +40,7 @@ namespace Saro.MoonAsset
             }
             else if (IsSpriteAtlas)
             {
-                var atlas = m_BundleHandle.Bundle.LoadAsset<SpriteAtlas>(SubAssetUrl);
+                var atlas = m_BundleHandle.Bundle.LoadAsset<SpriteAtlas>(m_SubAssetUrl);
                 Asset = atlas.GetSprite(Path.GetFileNameWithoutExtension(AssetUrl));
             }
             else
@@ -50,7 +57,7 @@ namespace Saro.MoonAsset
                 m_BundleHandle = null;
             }
 
-            // 这里依赖 Bundle.Unload(true) 来卸载资源
+            // 这里依赖 Bundle.Unload(true) 来真正卸载资源
             Asset = null;
         }
     }

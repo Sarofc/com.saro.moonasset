@@ -9,8 +9,8 @@ namespace Saro.MoonAsset
     {
         private AssetBundleRequest m_AssetBundleRequest;
 
-        public BundleAssetAsyncHandle(string bundle)
-            : base(bundle)
+        public BundleAssetAsyncHandle(string bundle, string subAssetUrl)
+            : base(bundle, subAssetUrl)
         {
         }
 
@@ -55,7 +55,7 @@ namespace Saro.MoonAsset
                             if (IsComponent)
                                 m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, typeof(GameObject));
                             else if (IsSpriteAtlas)
-                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(SubAssetUrl, typeof(SpriteAtlas));
+                                m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(m_SubAssetUrl, typeof(SpriteAtlas));
                             else
                                 m_AssetBundleRequest = m_BundleHandle.Bundle.LoadAssetAsync(AssetUrl, AssetType);
 

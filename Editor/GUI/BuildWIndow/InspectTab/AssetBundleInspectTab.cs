@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     [System.Serializable]
     internal class AssetBundleInspectTab

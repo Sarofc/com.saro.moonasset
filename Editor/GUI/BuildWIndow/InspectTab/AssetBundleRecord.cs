@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     /// <summary>
     /// This class maintains a record of a loaded asset bundle, allowing us

@@ -1,10 +1,10 @@
-﻿using AssetBundleBrowser.AssetBundleModel;
+﻿using Saro.AssetBundleBrowser.AssetBundleModel;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     internal class BundleDetailItem : TreeViewItem
     {

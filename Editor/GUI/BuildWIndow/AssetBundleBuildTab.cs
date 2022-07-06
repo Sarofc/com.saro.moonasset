@@ -4,9 +4,9 @@
 //using System.IO;
 //using System.Runtime.Serialization.Formatters.Binary;
 
-//using AssetBundleBrowser.AssetBundleDataSource;
+//using Saro.AssetBundleBrowser.AssetBundleDataSource;
 
-//namespace AssetBundleBrowser
+//namespace Saro.AssetBundleBrowser
 //{
 //    [System.Serializable]
 //    internal class AssetBundleBuildTab

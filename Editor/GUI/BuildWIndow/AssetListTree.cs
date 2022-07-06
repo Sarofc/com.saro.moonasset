@@ -6,7 +6,7 @@ using UnityEngine;
 //using System;
 
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     internal class AssetListTree : TreeView
     {

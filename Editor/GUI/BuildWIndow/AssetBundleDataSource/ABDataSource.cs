@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEditor;
 
-namespace AssetBundleBrowser.AssetBundleDataSource
+namespace Saro.AssetBundleBrowser.AssetBundleDataSource
 {
     /// <summary>
     /// Build Info struct used by ABDataSource to pass needed build data around.

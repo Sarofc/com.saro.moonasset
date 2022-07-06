@@ -5,7 +5,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
     internal class AssetBundleTree : TreeView
     {

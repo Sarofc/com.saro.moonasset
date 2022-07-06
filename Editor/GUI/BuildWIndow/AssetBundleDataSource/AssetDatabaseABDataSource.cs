@@ -3,7 +3,7 @@ using Saro.MoonAsset.Build;
 using System;
 using System.Collections.Generic;
 
-namespace AssetBundleBrowser.AssetBundleDataSource
+namespace Saro.AssetBundleBrowser.AssetBundleDataSource
 {
     internal class MoonAssetABDataSource : ABDataSource
     {

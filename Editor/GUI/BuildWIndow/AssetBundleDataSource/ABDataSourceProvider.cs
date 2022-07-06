@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AssetBundleBrowser.AssetBundleDataSource
+namespace Saro.AssetBundleBrowser.AssetBundleDataSource
 {
     internal class ABDataSourceProviderUtility
     {

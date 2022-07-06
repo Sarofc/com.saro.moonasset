@@ -4,7 +4,7 @@ using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Unity.AssetBundleBrowser.Editor.Tests")]
 
-namespace AssetBundleBrowser
+namespace Saro.AssetBundleBrowser
 {
 
     public class AssetBundleBrowserMain : EditorWindow, IHasCustomMenu, ISerializationCallbackReceiver
