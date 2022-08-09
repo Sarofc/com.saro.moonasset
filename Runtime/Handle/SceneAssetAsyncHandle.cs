@@ -10,8 +10,7 @@ namespace Saro.MoonAsset
 
         public SceneAssetAsyncHandle(string path, bool additive)
             : base(path, additive)
-        {
-        }
+        { }
 
         public override float Progress
         {
@@ -87,6 +86,8 @@ namespace Saro.MoonAsset
 
         private void LoadSceneAsync()
         {
+            Debug.LogError("begin SceneManager.LoadSceneAsync");
+
             try
             {
                 m_AsyncOperation = SceneManager.LoadSceneAsync(m_SceneName, m_LoadSceneMode);
@@ -98,6 +99,8 @@ namespace Saro.MoonAsset
                 Error = e.ToString();
                 LoadState = ELoadState.Loaded;
             }
+
+            Debug.LogError("end SceneManager.LoadSceneAsync");
         }
 
         internal override void Load()

@@ -10,6 +10,15 @@ namespace Saro.MoonAsset
 
         protected override bool GetAssetPath(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets)
         {
+            //if (MoonAssetConfig.s_UseSubFolderForStorge)
+            //{
+            //    assetPath = MoonAssetConfig.GetCompatibleFileName(assetName);
+            //    if (FileUtility.Exists(assetPath))
+            //    {
+            //        return true;
+            //    }
+            //}
+
             assetPath = m_Directory + "/" + assetName;
             if (FileUtility.Exists(assetPath))
             {

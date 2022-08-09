@@ -37,6 +37,7 @@ namespace Saro.MoonAsset.Build
         }
 
         [HideInInspector]
+        [SerializeField]
         public List<RuleRawAsset> assets = new List<RuleRawAsset>();
 
         public string GetCustomBundleName(Manifest manifest)

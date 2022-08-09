@@ -17,13 +17,6 @@ namespace Saro.MoonAsset
      *
      * 1. 如果资源加载没控制好，需要在合适的时候调用 Resources.UnloadUnusedAssets()
      *
-     * TODO
-     *
-     * 2. 考虑使用一个policy类，对资源加载策略进行封装
-     *   x 切场景时清理资源
-     *   x 每隔多久，清理一次无用资源
-     *   - 资源多久没使用，就标记自动卸载（废弃，不考虑了，要做，就业务逻辑自己做）
-     *
      */
 
     public sealed partial class MoonAsset : IAssetManager
@@ -94,7 +87,7 @@ namespace Saro.MoonAsset
         public static EMode s_Mode = EMode.AssetDatabase;
 
         /// <summary>
-        /// 只内部调用，外部通过 <see cref="Main.Resolve(Type)"/> 来获取
+        /// 只内部调用，外部通过 <see cref="IAssetManager.Current"/> 来获取
         /// </summary>
         internal static MoonAsset Current => Main.Resolve<IAssetManager>() as MoonAsset;
 
@@ -558,9 +551,9 @@ namespace Saro.MoonAsset
                 return null;
             }
 
-            bool exists = TryGetAssetPath(assetBundleName, out var assetPath, out var remoteAssets);
+            bool exists = TryGetAssetPath(assetBundleName, out var bundlePath, out var remoteAssets);
 
-            if (m_BundleHandleMap.TryGetValue(assetPath, out var handle))
+            if (m_BundleHandleMap.TryGetValue(bundlePath, out var handle))
             {
                 handle.Update();
                 handle.IncreaseRefCount();
@@ -576,7 +569,7 @@ namespace Saro.MoonAsset
                         Info = new DownloadInfo
                         {
                             DownloadUrl = MoonAssetConfig.GetRemoteAssetURL(remoteAssets.Name),
-                            SavePath = assetPath,
+                            SavePath = bundlePath,
                             Hash = remoteAssets.Hash,
                             Size = remoteAssets.Size,
                         },
@@ -584,7 +577,7 @@ namespace Saro.MoonAsset
                 }
                 else
                 {
-                    ERROR($"can't find remote asset: {assetPath}");
+                    ERROR($"can't find remote asset: {bundlePath}");
                 }
             }
 
@@ -593,9 +586,9 @@ namespace Saro.MoonAsset
                 handle = async ? new BundleAsyncHandle() : new BundleHandle();
             }
 
-            handle.AssetUrl = assetPath;
+            handle.AssetUrl = bundlePath;
 
-            m_BundleHandleMap.Add(assetPath, handle);
+            m_BundleHandleMap.Add(bundlePath, handle);
 
             if (MaxBundlesPerFrame > 0
                 && m_LoadingAssetHandles.Count >= MaxBundlesPerFrame

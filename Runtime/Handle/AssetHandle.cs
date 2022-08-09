@@ -45,10 +45,7 @@ namespace Saro.MoonAsset
 
         public Object Asset { get; protected set; }
 
-        public T GetAsset<T>() where T : Object
-        {
-            return Asset as T;
-        }
+        public T GetAsset<T>() where T : Object => Asset as T;
 
         internal abstract void Load();
 
@@ -81,14 +78,9 @@ namespace Saro.MoonAsset
 
         #region IEnumerator Impl
 
-        public bool MoveNext()
-        {
-            return !IsDone;
-        }
+        public bool MoveNext() => !IsDone;
 
-        public void Reset()
-        {
-        }
+        public void Reset() { }
 
         public object Current => null;
 

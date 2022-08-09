@@ -17,6 +17,7 @@ namespace Saro.MoonAsset.Build
         public bool detailBuildReport;
 
         [HideInInspector]
+        [SerializeField]
         public int buildMethodFlag;
 
         [Tooltip("是否覆盖宏")]

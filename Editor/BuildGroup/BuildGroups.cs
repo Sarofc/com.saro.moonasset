@@ -51,6 +51,7 @@ namespace Saro.MoonAsset.Build
         public int resVersion = 0;
 
         [HideInInspector]
+        [SerializeField]
         public int resVersionBuildAsset;
 
         [Tooltip("built-in场景")]

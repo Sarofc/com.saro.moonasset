@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System;
+using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -42,6 +44,13 @@ namespace Saro.MoonAsset
     {
         public static string RemoteAssetUrl => MoonAsset.Current.RemoteAssetUrl;
         public static int s_MaxDownloadRetryCount = 3;
+
+        /// <summary>
+        /// 截取文件名前两个字符，作为文件夹
+        /// <code>TODO 这类文件操作，做一个封装，另外 需要测试效率，判断什么时候开启比较合适</code>
+        /// <code>考虑 开启后，编辑器也是这样弄好了，使用统一的接口，更方便</code>
+        /// </summary>
+        public static bool s_UseSubFolderForStorge = false;
 
         public const string k_Dlc = "DLC";
         public const string k_ManifestAsset = "manifest" + k_AssetExtension;
@@ -106,19 +115,39 @@ namespace Saro.MoonAsset
 
         /// <summary>
         /// 持久化目录（dlc）的资源
+        /// <code>新增对 <see cref="s_UseSubFolderForStorge"/> 的支持</code>
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public static string GetLocalAssetURL(string fileName)
+        public static string GetLocalAssetPath(string fileName)
         {
             if (fileName.StartsWith("/"))
                 fileName = fileName.Substring(1);
 
-            return $"{k_DlcPath}/{fileName}";
+            //if (s_UseSubFolderForStorge)
+            //    fileName = GetCompatibleFileName(fileName);
+
+            var fullPath = $"{k_DlcPath}/{fileName}";
+
+            //if (s_UseSubFolderForStorge)
+            //{
+            //    var dir = Path.GetDirectoryName(fullPath);
+            //    if (!Directory.Exists(dir))
+            //    {
+            //        Directory.CreateDirectory(dir);
+            //    }
+            //}
+
+            return fullPath;
+        }
+
+        public static string GetCompatibleFileName(string fileName)
+        {
+            return fileName.Substring(0, 2) + "/" + fileName;
         }
 
         /// <summary>
-        /// 获取当前平台AB包文件夹名字
+        /// 获取当前平台的名字
         /// </summary>
         /// <returns></returns>
         public static string GetCurrentPlatformName()

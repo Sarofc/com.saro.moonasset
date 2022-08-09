@@ -250,7 +250,7 @@ namespace Saro.MoonAsset.Update
                 var info = new DownloadInfo
                 {
                     DownloadUrl = MoonAssetConfig.GetRemoteAssetURL(asset.Name),
-                    SavePath = MoonAssetConfig.GetLocalAssetURL(asset.Name),
+                    SavePath = MoonAssetConfig.GetLocalAssetPath(asset.Name),
                     Size = asset.Size,
                     Hash = asset.Hash,
                     //UseRESUME = m_ManifestVersionSame, // 版本号一致时，才使用断点续传。！！！！此逻辑有误

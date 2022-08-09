@@ -47,6 +47,7 @@ namespace Saro.MoonAsset.Build
         [Tooltip("实际的资源列表")]
         [ReadOnly]
         [HideInInspector]
+        [SerializeField]
         public string[] assets = new string[0];
 
         public IList<string> GetAssetBundles(Manifest manifest)
