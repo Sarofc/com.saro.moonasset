@@ -20,7 +20,7 @@ namespace Saro.MoonAsset.Build
         [SerializeField]
         public int buildMethodFlag;
 
-        [Tooltip("是否覆盖宏")]
+        [Tooltip("是否覆盖宏，目前只在 BuildScript.BuildPlayer() 里调用。\n谨慎使用，可能造成难以排查的bug!\n建议直接使用unity自带的宏定义配置")]
         public bool overrideSymbols;
 
         [Tooltip("打包宏，完全覆盖，仅打包时传入打包脚本，英文逗号分割")]
