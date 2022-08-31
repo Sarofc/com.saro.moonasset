@@ -101,15 +101,19 @@ namespace Saro.MoonAsset.Build
         {
             Clear();
 
+            // 处理unity资源
             CollectAssets();
             AnalysisAssets();
             OptimizeAssets();
 
+            // 处理unity图集
             ProcessSpriteAtlases();
 
-            Save();
-
+            // 处理自定义raw资源
             ApplyRawGroups();
+
+            // 再保存
+            Save();
         }
 
         public AssetBundleBuild[] GetAssetBundleBuilds()
@@ -414,13 +418,13 @@ namespace Saro.MoonAsset.Build
         #region SpriteAtlas
 
         /*
-         * 
+         *
          * sbp模式，只打了 atlas，且勾选include，sprite散图不打进ab，首包场景里没有引用图集的散图，结果只有 ab 里有一张图集，没有散图，此结果是正确的。
-         * 
+         *
          * 1. 由于散图不参与打包，且上层逻辑希望直接通过散图路径加载，所以需要包装一层，见SpriteAtlasRef。
          * 2. 多个预制体，引用一个图集，也是没问题的。
-         * 3. 如果首包场景里引用到了打包的图集，那么会冗余一张图集，没有散图。
-         * 
+         * 3. 如果首包场景里引用到了 分包的图集，那么首包里会冗余一张图集，没有散图。
+         *
          */
 
         private readonly Dictionary<string, HashSet<string>> m_SpriteAtlasTracker = new(128);
@@ -483,7 +487,7 @@ namespace Saro.MoonAsset.Build
             ruleSprites = m_SpriteToAtlas.Select(x => new RuleSprite { spritePath = x.Key, atlasPath = x.Value }).ToArray();
         }
 
-        // 适用于 legacy 打包管线，spriteatlas不打包，图集打成一个ab
+        // 适用于 legacy 打包管线，spriteatlas不打包，散图打成一个ab
         private void ProcessSpriteAtlases_Legacy()
         {
             m_SpriteAtlasTracker.Clear();
