@@ -168,8 +168,7 @@ namespace Saro.MoonAsset.Build
                 var rect1 = rect;
                 rect1.y += 4f;
                 rect1.x += 10f;
-                rect1.width = 50f;
-
+                rect1.width = 25f;
 
                 buildMethod.selected = (m_Settings.buildMethodFlag & (1 << index)) != 0 || buildMethod.required;
 
@@ -181,11 +180,8 @@ namespace Saro.MoonAsset.Build
                 if (buildMethod.selected) m_Settings.buildMethodFlag |= 1 << index;
                 else m_Settings.buildMethodFlag &= ~(1 << index);
 
-                rect1.x = 40f;
-                rect1.width = 300f;
-                EditorGUI.LabelField(rect1, new GUIContent(string.Format("[{0:00}] {1}", buildMethod.order, buildMethod.displayName), buildMethod.tooltip), buildMethod.required ? s_Styles.style_FontBlodAndItalic : s_Styles.style_FontItalic);
-                rect1.x = rect.width - 40;
-                rect1.width = 40;
+                rect1.x += rect1.width;
+                rect1.width = 40f;
                 rect1.height = EditorGUIUtility.singleLineHeight;
 
                 if (GUI.Button(rect1, "Run"))
@@ -198,6 +194,12 @@ namespace Saro.MoonAsset.Build
                         }
                     });
                 }
+
+                rect1.x += 40f + 10f;
+                rect1.width = 300f;
+                var label = new GUIContent(string.Format("[{0:00}] {1}", buildMethod.order, buildMethod.displayName), buildMethod.tooltip);
+                var labelStyle = buildMethod.required ? s_Styles.style_FontBlodAndItalic : s_Styles.style_FontItalic;
+                EditorGUI.LabelField(rect1, label, labelStyle);
             }
         }
 
