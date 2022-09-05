@@ -2,13 +2,13 @@
 
 namespace Saro.MoonAsset
 {
-    public sealed class LocalAssetLocator : AssetLocatorBase
+    public sealed class LocalBundleLocator : BundleLocatorBase
     {
-        public LocalAssetLocator(string directory) : base(directory)
+        public LocalBundleLocator(string directory) : base(directory)
         {
         }
 
-        protected override bool GetAssetPath(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets)
+        protected override bool GetBundlePath(string bundleName, ref string filePath, ref IRemoteAssets remoteAssets)
         {
             //if (MoonAssetConfig.s_UseSubFolderForStorge)
             //{
@@ -19,8 +19,8 @@ namespace Saro.MoonAsset
             //    }
             //}
 
-            assetPath = m_Directory + "/" + assetName;
-            if (FileUtility.Exists(assetPath))
+            filePath = m_Directory + "/" + bundleName;
+            if (FileUtility.Exists(filePath))
             {
                 return true;
             }

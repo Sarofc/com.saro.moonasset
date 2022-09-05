@@ -3,21 +3,21 @@
     /// <summary>
     /// 定位远端资源，永远返回false
     /// </summary>
-    public sealed class RemoteAssetLocator : AssetLocatorBase
+    public sealed class RemoteBundleLocator : BundleLocatorBase
     {
-        public RemoteAssetLocator(string directory) : base(directory)
+        public RemoteBundleLocator(string directory) : base(directory)
         {
         }
 
-        protected override bool GetAssetPath(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets)
+        protected override bool GetBundlePath(string bundleName, ref string filePath, ref IRemoteAssets remoteAssets)
         {
             var manifest = MoonAsset.Current?.Manifest;
-            if (manifest != null && manifest.TryGetRemoteAsset(assetName, out remoteAssets))
+            if (manifest != null && manifest.TryGetRemoteAsset(bundleName, out remoteAssets))
             {
                 if (remoteAssets != null /*&& remoteAsset.Hash == fileInfo.Length*/)
                 {
                     // 加载路径指向下载目录
-                    assetPath = MoonAssetConfig.k_DlcPath + "/" + assetName;
+                    filePath = MoonAssetConfig.k_DlcPath + "/" + bundleName;
                 }
             }
 

@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEditor.U2D;
 using UnityEngine;
 using UnityEngine.U2D;
+using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 
 //sbp 不支持变体
 //https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
@@ -17,12 +18,11 @@ namespace Saro.MoonAsset.Build
 {
     public partial class BuildGroups : ScriptableObject
     {
-        #region BundleGroup
-
-        private readonly Dictionary<string, string> m_Asset2Bundles = new Dictionary<string, string>(1024, StringComparer.Ordinal);
-        private readonly Dictionary<string, string[]> m_ConflictedAssets = new Dictionary<string, string[]>(1024, StringComparer.Ordinal);
-        private readonly HashSet<string> m_NeedOptimizedAssets = new HashSet<string>();
-        private readonly Dictionary<string, HashSet<string>> m_Tracker = new Dictionary<string, HashSet<string>>(1024, StringComparer.Ordinal);
+        private readonly Dictionary<string, string> m_Asset2Bundles = new(1024, StringComparer.Ordinal);
+        private readonly HashSet<string> m_RawFileSet = new(1024, StringComparer.Ordinal);
+        private readonly Dictionary<string, string[]> m_ConflictedAssets = new(1024, StringComparer.Ordinal);
+        private readonly HashSet<string> m_NeedOptimizedAssets = new();
+        private readonly Dictionary<string, HashSet<string>> m_Tracker = new(1024, StringComparer.Ordinal);
 
         [Header("Settings")]
         [Tooltip("是否用hash代替bundle名称")]
@@ -50,10 +50,6 @@ namespace Saro.MoonAsset.Build
         [Header("Builds")]
         public int resVersion = 0;
 
-        [HideInInspector]
-        [SerializeField]
-        public int resVersionBuildAsset;
-
         [Tooltip("built-in场景")]
         public SceneAsset[] scenesInBuild = new SceneAsset[0];
 
@@ -70,16 +66,6 @@ namespace Saro.MoonAsset.Build
         public RuleSprite[] ruleSprites = new RuleSprite[0];
 
         #region API
-
-        public void ApplyResVersionBuildAsset()
-        {
-            resVersionBuildAsset = resVersion;
-        }
-
-        public bool IsNeedAddResVersion()
-        {
-            return resVersionBuildAsset == resVersion;
-        }
 
         /// <summary>
         /// 更新资源版本号
@@ -109,35 +95,49 @@ namespace Saro.MoonAsset.Build
             // 处理unity图集
             ProcessSpriteAtlases();
 
-            // 处理自定义raw资源
-            ApplyRawGroups();
-
             // 再保存
             Save();
         }
 
         public AssetBundleBuild[] GetAssetBundleBuilds()
         {
-            var builds = new AssetBundleBuild[ruleBundles.Length];
+            var builds = new List<AssetBundleBuild>(ruleBundles.Length);
             for (int i = 0; i < ruleBundles.Length; i++)
             {
-                RuleBundle ruleBundle = ruleBundles[i];
-                builds[i] = new AssetBundleBuild
+                var ruleBundle = ruleBundles[i];
+
+                if (ruleBundle.isRawFile) continue;
+
+                builds.Add(new AssetBundleBuild
                 {
                     assetNames = ruleBundle.assets,
                     assetBundleName = ruleBundle.bundle,
 
                     // if use short path
                     //addressableNames = ruleBundle.assets.Select(Path.GetFileNameWithoutExtension).ToArray()
-                };
+                });
             }
 
-            return builds;
+            return builds.ToArray();
+        }
+
+        public RuleBundle[] GetRawBundleBuilds()
+        {
+            var builds = new List<RuleBundle>(ruleBundles.Length);
+            for (int i = 0; i < ruleBundles.Length; i++)
+            {
+                var ruleBundle = ruleBundles[i];
+
+                if (ruleBundle.isRawFile)
+                {
+                    builds.Add(ruleBundle);
+                }
+            }
+
+            return builds.ToArray();
         }
 
         #endregion
-
-        #region Private
 
         internal static bool ValidateAsset(string asset)
         {
@@ -177,17 +177,21 @@ namespace Saro.MoonAsset.Build
             return asset.EndsWith(".shader") || asset.EndsWith(".shadervariants");
         }
 
-        internal string RuledAssetBundleName(string asset)
+        internal string RuledBundleName(string name, bool raw = false)
         {
-            if (string.IsNullOrEmpty(asset)) throw new ArgumentNullException("asset");
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("asset");
 
+            var extension = raw ? MoonAssetConfig.k_RawAssetExtension : MoonAssetConfig.k_AssetExtension;
             if (nameBundleByHash)
             {
-                return Utility.HashUtility.GetMd5HexHash(asset) + MoonAssetConfig.k_AssetExtension;
+                if (appendAssetHash) // 如果appendhash，则使用短hash
+                    return Utility.HashUtility.GetCrc32HexHash(name) + extension;
+                else
+                    return Utility.HashUtility.GetMd5HexHash(name) + extension;
             }
             else
             {
-                var newName = asset + MoonAssetConfig.k_AssetExtension;
+                var newName = name + MoonAssetConfig.k_AssetExtension;
                 newName.ReplaceFast('/', '_').ReplaceFast('\\', '_').ToLowerFast();
                 return newName;
             }
@@ -221,6 +225,7 @@ namespace Saro.MoonAsset.Build
             foreach (var item in m_Asset2Bundles)
             {
                 var bundle = item.Value;
+
                 if (!bundles.TryGetValue(bundle, out List<string> list))
                 {
                     list = new List<string>(64);
@@ -240,6 +245,7 @@ namespace Saro.MoonAsset.Build
             m_NeedOptimizedAssets.Clear();
             m_ConflictedAssets.Clear();
             m_Asset2Bundles.Clear();
+            m_RawFileSet.Clear();
         }
 
         private void Save()
@@ -266,7 +272,8 @@ namespace Saro.MoonAsset.Build
                 ruleBundles[i] = new RuleBundle
                 {
                     bundle = item.Key,
-                    assets = item.Value.ToArray()
+                    assets = item.Value.ToArray(),
+                    isRawFile = IsRawFile(item.Key),
                 };
                 i++;
             }
@@ -307,6 +314,11 @@ namespace Saro.MoonAsset.Build
             }
         }
 
+        private bool IsRawFile(string bundle)
+        {
+            return m_RawFileSet.Contains(bundle);
+        }
+
         private void AnalysisAssets()
         {
             var bundle2Assets = GetBundle2Assets();
@@ -314,6 +326,9 @@ namespace Saro.MoonAsset.Build
             foreach (var item in bundle2Assets)
             {
                 var bundle = item.Key;
+
+                // raw file 不需要进行资源检测
+                if (IsRawFile(bundle)) continue;
 
                 if (EditorUtility.DisplayCancelableProgressBar($"分析依赖{i}/{max}", bundle, i / (float)max))
                     break;
@@ -380,9 +395,9 @@ namespace Saro.MoonAsset.Build
         private void OptimizeAsset(string asset)
         {
             if (IsShaderAsset(asset))
-                m_Asset2Bundles[asset] = RuledAssetBundleName("shaders");
+                m_Asset2Bundles[asset] = RuledBundleName("shaders");
             else
-                m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
+                m_Asset2Bundles[asset] = RuledBundleName(asset);
         }
 
         private void ApplyBundleGroup(BundleGroup group)
@@ -393,24 +408,37 @@ namespace Saro.MoonAsset.Build
             {
                 if (IsShaderAsset(asset))
                 {
-                    m_Asset2Bundles[asset] = RuledAssetBundleName("shaders");
+                    m_Asset2Bundles[asset] = RuledBundleName("shaders");
                     continue;
                 }
 
-                switch (group.nameBy)
+                string bundleName = null;
+                switch (group.packedBy)
                 {
-                    case BundleGroup.ENameBy.Path:
+                    case BundleGroup.EPackedBy.File:
                         {
-                            m_Asset2Bundles[asset] = RuledAssetBundleName(asset);
+                            bundleName = RuledBundleName(asset);
                             break;
                         }
-                    case BundleGroup.ENameBy.Directory:
+                    case BundleGroup.EPackedBy.RawFile:
                         {
-                            m_Asset2Bundles[asset] = RuledAssetBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
+                            bundleName = RuledBundleName(asset, true);
+                            break;
+                        }
+                    case BundleGroup.EPackedBy.Directory:
+                        {
+                            bundleName = RuledBundleName(Path.GetDirectoryName(asset).ReplaceFast('\\', '/'));
                             break;
                         }
                     default:
                         throw new ArgumentOutOfRangeException();
+                }
+
+                m_Asset2Bundles[asset] = bundleName;
+
+                if (group.IsRawFile)
+                {
+                    m_RawFileSet.Add(bundleName);
                 }
             }
         }
@@ -448,7 +476,7 @@ namespace Saro.MoonAsset.Build
                 if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float)atlasPaths.Length))
                     break;
 
-                var bundleName = RuledAssetBundleName(atlasPath);
+                var bundleName = RuledBundleName(atlasPath);
 
                 foreach (var assetPath in AssetDatabase.GetDependencies(atlasPath))
                 {
@@ -499,7 +527,7 @@ namespace Saro.MoonAsset.Build
                 if (EditorUtility.DisplayCancelableProgressBar($"处理图集{i}/{atlasPaths.Length}", atlasPath, i / (float)atlasPaths.Length))
                     break;
 
-                var bundleName = RuledAssetBundleName(atlasPath);
+                var bundleName = RuledBundleName(atlasPath);
 
                 foreach (var assetPath in AssetDatabase.GetDependencies(atlasPath))
                 {
@@ -530,8 +558,6 @@ namespace Saro.MoonAsset.Build
                 m_Asset2Bundles[assetPath] = bundleName;
             }
         }
-
-        #endregion
 
         #endregion
 
@@ -597,30 +623,11 @@ namespace Saro.MoonAsset.Build
 
         #endregion
 
-        #endregion
-
-        #region RawGroup
-
-        [Header("RawAsset打包")]
-        public RawGroup[] rawGroups = new RawGroup[0];
-
-        private void ApplyRawGroups()
-        {
-            foreach (var group in rawGroups)
-            {
-                var assets = group.GetAssets();
-            }
-        }
-
-        #endregion
-
-        #region MyRegion
-
         /// <summary>
         /// 获取包体资源，需要打完包才行
         /// </summary>
         /// <returns></returns>
-        public string[] GetBuiltInAssetBundles(Manifest manifest)
+        public string[] GetBuiltInBundles(Manifest manifest)
         {
             using (HashSetPool<string>.Rent(out var set))
             {
@@ -628,7 +635,7 @@ namespace Saro.MoonAsset.Build
                 {
                     if (group.builtIn)
                     {
-                        var bundles = group.GetAssetBundles(manifest);
+                        var bundles = group.GetBundles(manifest);
                         foreach (var bundle in bundles)
                         {
                             set.Add(bundle);
@@ -639,43 +646,5 @@ namespace Saro.MoonAsset.Build
                 return set.ToArray();
             }
         }
-
-        /// <summary>
-        /// 获取包体资源，需要打完包才行
-        /// </summary>
-        /// <returns></returns>
-        public string[] GetBuiltInRawAssets(Manifest manifest)
-        {
-            using (HashSetPool<string>.Rent(out var set))
-            {
-                foreach (var group in rawGroups)
-                {
-                    if (group.builtIn)
-                    {
-                        var name = group.GetCustomBundleName(manifest);
-                        if (!string.IsNullOrEmpty(name))
-                            set.Add(name);
-
-                        /*
-                        if (group.packAsVFS)
-                        {
-                            set.Add(XAssetPath.k_CustomFolder + "/" + group.groupName);
-                        }
-                        else
-                        {
-                            foreach (var asset in group.assets)
-                            {
-                                set.Add(XAssetPath.k_CustomFolder + "/" + group.groupName + "/" + asset.asset);
-                            }
-                        }
-                        */
-                    }
-                }
-
-                return set.ToArray();
-            }
-        }
-
-        #endregion
     }
 }

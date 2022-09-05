@@ -28,35 +28,36 @@ namespace Saro.MoonAsset.Build
             BuildScript.ApplyBuildGroups();
         }
 
-        //[XAssetBuildMethod(15, "打包数据表")]
-        [System.Obsolete("使用RawAssets", true)]
-        private static void PackTables()
+        [MoonAssetBuildMethod(15, "TODO PackVFiles")]
+        private static void PackVFiles()
         {
-            try
-            {
-                // 拷贝数据表到 Extra 里
-                {
-                    var tablePath = "tables/data/config";
-                    var files = Directory.GetFiles(tablePath, "*", SearchOption.AllDirectories);
+            IVFilePacker.PackVFiles();
 
-                    foreach (var file in files)
-                    {
-                        var fileName = Path.GetFileName(file);
-                        var dst = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder + "/" + fileName;
+            //try
+            //{
+            //    // 拷贝数据表到 Extra 里
+            //    {
+            //        var tablePath = "tables/data/config";
+            //        var files = Directory.GetFiles(tablePath, "*", SearchOption.AllDirectories);
 
-                        File.Copy(file, dst, true);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[XAsset] 打包数据表 error:" + e);
-                return;
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
+            //        foreach (var file in files)
+            //        {
+            //            var fileName = Path.GetFileName(file);
+            //            var dst = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder + "/" + fileName;
+
+            //            File.Copy(file, dst, true);
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Debug.LogError("[XAsset] 打包数据表 error:" + e);
+            //    return;
+            //}
+            //finally
+            //{
+            //    EditorUtility.ClearProgressBar();
+            //}
         }
 
         [MoonAssetBuildMethod(20, "Build AssetBundles", false)]
@@ -71,23 +72,10 @@ namespace Saro.MoonAsset.Build
 
             watch.Stop();
 
-            var buildGroups = BuildScript.GetBuildGroups();
-            buildGroups.ApplyResVersionBuildAsset();
+            AddManfestVersion();
         }
 
-
-        [MoonAssetBuildMethod(40, "Build RawBundles", tooltip = "非AB资源打包成vfs文件")]
-        private static void BuildRawBundles()
-        {
-            BuildScript.BuildRawBundles();
-
-            BuildScript.AppendRawBundleHash();
-
-            var buildGroups = BuildScript.GetBuildGroups();
-            buildGroups.ApplyResVersionBuildAsset();
-        }
-
-        [MoonAssetBuildMethod(41, "Add ManfestVersion")]
+        //[MoonAssetBuildMethod(41, "Add ManfestVersion")]
         private static void AddManfestVersion()
         {
             var manifest = BuildScript.GetManifest();
@@ -101,19 +89,6 @@ namespace Saro.MoonAsset.Build
         [MoonAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false)]
         private static void UploadAssetsToFileServerUseManifest()
         {
-            var buildGroups = BuildScript.GetBuildGroups();
-            if (buildGroups.IsNeedAddResVersion())
-            {
-                if (EditorUtility.DisplayDialog("错误", "重新打过资源，上传前，需要先 AddManfestVersion", "好的", "我再想想"))
-                {
-                    AddManfestVersion();
-                }
-                else
-                {
-                    return;
-                }
-            }
-
             var folderToUpload = MoonAssetConfig.k_Editor_DlcOutputPath;
             if (!Directory.Exists(folderToUpload)) return;
 
@@ -181,7 +156,7 @@ namespace Saro.MoonAsset.Build
             if (!Directory.Exists(MoonAssetConfig.k_Editor_DlcOutputPath)) return;
 
             // bundle
-            var builtInBundles = group.GetBuiltInAssetBundles(manifest);
+            var builtInBundles = group.GetBuiltInBundles(manifest);
             sb.AppendLine("** builtInAssets");
             sb.AppendLine("*bundle:" + builtInBundles.Length);
             foreach (var fileName in builtInBundles)
@@ -203,32 +178,6 @@ namespace Saro.MoonAsset.Build
                 else
                 {
                     throw new Exception("CopyDlcFolderToStreammingAssets. bundle not found: " + src);
-                }
-            }
-
-            // custom asset
-            var builtInCustomAssets = group.GetBuiltInRawAssets(manifest);
-            sb.AppendLine();
-            sb.AppendLine("*custom asset:" + builtInCustomAssets.Length);
-            foreach (var fileName in builtInCustomAssets)
-            {
-                var src = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + fileName;
-                var dest = Path.Combine(destFolder, fileName);
-
-                var directory = Path.GetDirectoryName(dest);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                if (File.Exists(src))
-                {
-                    File.Copy(src, dest, true);
-                    sb.Append(src).AppendLine();
-                }
-                else
-                {
-                    throw new Exception("CopyDlcFolderToStreammingAssets. assest not found: " + src);
                 }
             }
 

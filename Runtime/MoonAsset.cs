@@ -282,20 +282,13 @@ namespace Saro.MoonAsset
 
             if (TryGetAssetPath(manifestName, out var manifestPath, out _))
             {
-                try
-                {
-                    string content = FileUtility.ReadAllText(manifestPath);
+                string content = FileUtility.ReadAllText(manifestPath);
 
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        var manifest = ScriptableObject.CreateInstance<Manifest>();
-                        manifest.Load(content);
-                        return manifest;
-                    }
-                }
-                catch (Exception e)
+                if (!string.IsNullOrEmpty(content))
                 {
-                    ERROR(e.ToString());
+                    var manifest = ScriptableObject.CreateInstance<Manifest>();
+                    manifest.Load(content);
+                    return manifest;
                 }
             }
 

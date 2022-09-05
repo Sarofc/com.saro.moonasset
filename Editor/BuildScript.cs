@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Pipeline;
@@ -178,7 +179,7 @@ namespace Saro.MoonAsset.Build
         {
             // TODO 打AB的时候，需不需要设置宏？
 
-            SBPBuildAssetBundles();
+            BuildAssetBundles_SBP();
         }
 
         public static void AppendBundleHash()
@@ -211,22 +212,22 @@ namespace Saro.MoonAsset.Build
             }
         }
 
-        private static void SBPBuildAssetBundles()
+        private static void BuildAssetBundles_SBP()
         {
-            var outputFolder = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_AssetBundleFoler;
+            var outputFolder = MoonAssetConfig.k_Editor_DlcOutputPath;
 
             if (Directory.Exists(outputFolder))
                 Directory.Delete(outputFolder, true);
 
             Directory.CreateDirectory(outputFolder);
 
+            // 1. build assetbundle
             var options = GetSettings().buildAssetBundleOptions;
-
             var buildTarget = EditorUserBuildSettings.activeBuildTarget;
             var buildGroups = GetBuildGroups();
             var assetBundleBuilds = buildGroups.GetAssetBundleBuilds();
 
-            var retCode = SBPBuildAssetBundle.BuildAssetBundles(outputFolder, assetBundleBuilds, options, buildTarget,
+            var retCode = BuildAssetBundle_SBP.BuildAssetBundles(outputFolder, assetBundleBuilds, options, buildTarget,
                 out var result);
 
             if (retCode != ReturnCode.Success)
@@ -241,23 +242,45 @@ namespace Saro.MoonAsset.Build
             //File.WriteAllText(outputFolder, JsonUtility.ToJson(sbpManifest));
             //MoonAsset.ERROR(JsonUtility.ToJson(sbpManifest));
 
-            var bundleInfos = result.BundleInfos;
+            // =================
+            // 2. build rawbundle
+            var rawBundles = buildGroups.GetRawBundleBuilds();
+            foreach (var item in rawBundles)
+            {
+                var bundle = item.bundle;
+
+                var src = item.assets[0];
+                var dst = string.Format("{0}/{1}", outputFolder, bundle);
+
+                // copy to
+                File.Copy(src, dst, true);
+            }
+            // =================
+
+            // 3. create manifest
+            var bundleInfos = result.BundleInfos; // ab
+            var allBundles = bundleInfos.Keys.ToList();
             var manifest = GetManifest();
             var dirs = new List<string>();
-            var bundles = bundleInfos.Keys.ToArray();
             var bundle2Ids = new Dictionary<string, int>(StringComparer.Ordinal);
 
-            for (int index = 0; index < bundles.Length; index++)
+            foreach (var item in rawBundles) // raw
+                allBundles.Add(item.bundle);
+
+            for (int index = 0; index < allBundles.Count; index++)
             {
-                var bundle = bundles[index];
-                bundle2Ids[bundle] = index;
+                bundle2Ids[allBundles[index]] = index;
             }
 
-            var bundleRefs = new List<BundleRef>(bundles.Length);
-            for (var index = 0; index < bundles.Length; index++)
+            var bundleRefs = new List<BundleRef>(allBundles.Count);
+            for (var index = 0; index < allBundles.Count; index++)
             {
-                var bundle = bundles[index];
-                var deps = bundleInfos[bundle].Dependencies;
+                var bundle = allBundles[index];
+
+                string[] deps = null;
+                if (bundleInfos.TryGetValue(bundle, out var bundleDetails))
+                    deps = bundleInfos[bundle].Dependencies;
+
                 var path = string.Format("{0}/{1}", outputFolder, bundle);
                 if (File.Exists(path))
                 {
@@ -265,8 +288,8 @@ namespace Saro.MoonAsset.Build
                     {
                         bundleRefs.Add(new BundleRef
                         {
-                            name = MoonAssetConfig.k_AssetBundleFoler + "/" + bundle,
-                            deps = Array.ConvertAll(deps, input => bundle2Ids[input]),
+                            name = bundle,
+                            deps = deps != null ? Array.ConvertAll(deps, input => bundle2Ids[input]) : null,
                             size = fs.Length,
                             hash = HashUtility.GetMd5HexHash(fs), // 改用自己的md5hash
                             //hash = assetBundleManifest[bundle].Hash.ToString(),
@@ -309,6 +332,8 @@ namespace Saro.MoonAsset.Build
                 }
             }
 
+            // =================
+            // spriteatlas
             var ruleSprites = buildGroups.ruleSprites;
             var atlasRefs = new List<SpriteAtlasRef>(ruleSprites.Length);
             for (int i = 0; i < ruleSprites.Length; i++)
@@ -346,6 +371,7 @@ namespace Saro.MoonAsset.Build
 
                 atlasRefs.Add(atlasRef);
             }
+            // =================
 
             manifest.dirs = dirs.ToArray();
             manifest.assets = assetRefs.ToArray();
@@ -357,146 +383,116 @@ namespace Saro.MoonAsset.Build
             AssetDatabase.Refresh();
         }
 
-        public static void BuildRawBundles()
-        {
-            try
-            {
-                EditorUtility.DisplayProgressBar("BuildCustomAssets", "start build", 0);
+        //public static void BuildRawBundles()
+        //{
+        //    try
+        //    {
+        //        EditorUtility.DisplayProgressBar("BuildCustomAssets", "start build", 0);
 
-                var buildGroups = GetBuildGroups();
-                var customGroups = buildGroups.rawGroups;
+        //        var buildGroups = GetBuildGroups();
+        //        var customGroups = buildGroups.rawGroups;
 
-                var outputDirectory = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder;
-                if (Directory.Exists(outputDirectory))
-                {
-                    Directory.Delete(outputDirectory, true);
-                }
+        //        var outputDirectory = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder;
+        //        if (Directory.Exists(outputDirectory))
+        //        {
+        //            Directory.Delete(outputDirectory, true);
+        //        }
 
-                Directory.CreateDirectory(outputDirectory);
+        //        Directory.CreateDirectory(outputDirectory);
 
-                var dirs = new List<string>();
-                var assetRefs = new List<AssetRef>();
-                var bundleRefs = new List<RawBundleRef>();
+        //        var dirs = new List<string>();
+        //        var assetRefs = new List<AssetRef>();
+        //        var bundleRefs = new List<RawBundleRef>();
 
-                for (int k = 0; k < customGroups.Length; k++)
-                {
-                    RawGroup group = customGroups[k];
-                    var assets = group.assets;
+        //        for (int k = 0; k < customGroups.Length; k++)
+        //        {
+        //            RawGroup group = customGroups[k];
+        //            var assets = group.assets;
 
-                    var dst = outputDirectory + "/" + group.groupName;
+        //            var dst = outputDirectory + "/" + group.groupName;
 
-                    var directory = Path.GetDirectoryName(dst);
-                    if (!Directory.Exists(directory))
-                    {
-                        Directory.CreateDirectory(directory);
-                    }
+        //            var directory = Path.GetDirectoryName(dst);
+        //            if (!Directory.Exists(directory))
+        //            {
+        //                Directory.CreateDirectory(directory);
+        //            }
 
-                    if (File.Exists(dst))
-                    {
-                        File.Delete(dst);
-                    }
+        //            if (File.Exists(dst))
+        //            {
+        //                File.Delete(dst);
+        //            }
 
-                    if (assets.Count > 0)
-                    {
-                        using (var vfs = VFileSystem.Open(dst, FileMode.CreateNew, FileAccess.Write, assets.Count,
-                                   assets.Count))
-                        {
-                            for (int i = 0; i < assets.Count; i++)
-                            {
-                                var asset = assets[i];
-                                var fileName = asset.name;
+        //            if (assets.Count > 0)
+        //            {
+        //                using (var vfs = VFileSystem.Open(dst, FileMode.CreateNew, FileAccess.Write, assets.Count,
+        //                           assets.Count))
+        //                {
+        //                    for (int i = 0; i < assets.Count; i++)
+        //                    {
+        //                        var asset = assets[i];
+        //                        var fileName = asset.name;
 
-                                EditorUtility.DisplayProgressBar("BuildCustomAssets",
-                                    $"pack {group.groupName}/{fileName}", ((i + 1) / (float)assets.Count));
+        //                        EditorUtility.DisplayProgressBar("BuildCustomAssets",
+        //                            $"pack {group.groupName}/{fileName}", ((i + 1) / (float)assets.Count));
 
-                                var dir = Path.GetDirectoryName(fileName).Replace("\\", "/");
-                                dir = string.IsNullOrEmpty(dir) ? group.groupName : group.groupName + "/" + dir;
-                                var index = dirs.FindIndex(o => o.Equals(dir));
-                                if (index == -1)
-                                {
-                                    index = dirs.Count;
-                                    dirs.Add(dir);
-                                }
+        //                        var dir = Path.GetDirectoryName(fileName).Replace("\\", "/");
+        //                        dir = string.IsNullOrEmpty(dir) ? group.groupName : group.groupName + "/" + dir;
+        //                        var index = dirs.FindIndex(o => o.Equals(dir));
+        //                        if (index == -1)
+        //                        {
+        //                            index = dirs.Count;
+        //                            dirs.Add(dir);
+        //                        }
 
-                                if (!group.disableAssetName)
-                                {
-                                    assetRefs.Add(new AssetRef
-                                    {
-                                        name = Path.GetFileName(fileName),
-                                        dir = index,
-                                        bundle = k,
-                                    });
-                                }
+        //                        if (!group.disableAssetName)
+        //                        {
+        //                            assetRefs.Add(new AssetRef
+        //                            {
+        //                                name = Path.GetFileName(fileName),
+        //                                dir = index,
+        //                                bundle = k,
+        //                            });
+        //                        }
 
-                                var src = group.searchPaths[asset.dir] + "/" + fileName;
-                                var name = group.groupName + "/" + fileName;
-                                vfs.WriteFile(name, src);
-                            }
+        //                        var src = group.searchPaths[asset.dir] + "/" + fileName;
+        //                        var name = group.groupName + "/" + fileName;
+        //                        vfs.WriteFile(name, src);
+        //                    }
 
-                            Log.ERROR(string.Join(", ", vfs.GetAllFileInfos()));
-                            Log.ERROR("vfs file count:" + vfs.FileCount);
-                        }
+        //                    Log.ERROR(string.Join(", ", vfs.GetAllFileInfos()));
+        //                    Log.ERROR("vfs file count:" + vfs.FileCount);
+        //                }
 
-                        using (var fs = File.OpenRead(dst))
-                        {
-                            bundleRefs.Add(new RawBundleRef
-                            {
-                                name = MoonAssetConfig.k_RawFolder + "/" + group.groupName,
-                                size = fs.Length,
-                                hash = HashUtility.GetMd5HexHash(fs),
-                            });
-                        }
-                    }
-                }
+        //                using (var fs = File.OpenRead(dst))
+        //                {
+        //                    bundleRefs.Add(new RawBundleRef
+        //                    {
+        //                        name = MoonAssetConfig.k_RawFolder + "/" + group.groupName,
+        //                        size = fs.Length,
+        //                        hash = HashUtility.GetMd5HexHash(fs),
+        //                    });
+        //                }
+        //            }
+        //        }
 
-                var manifest = BuildScript.GetManifest();
-                manifest.rawDirs = dirs.ToArray();
-                manifest.rawAssets = assetRefs.ToArray();
-                manifest.rawBundles = bundleRefs.ToArray();
+        //        var manifest = BuildScript.GetManifest();
+        //        manifest.rawDirs = dirs.ToArray();
+        //        manifest.rawAssets = assetRefs.ToArray();
+        //        manifest.rawBundles = bundleRefs.ToArray();
 
-                EditorUtility.SetDirty(manifest);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
-            catch (Exception e)
-            {
-                Log.ERROR(e);
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
-        }
-
-        public static void AppendRawBundleHash()
-        {
-            var buildGroups = BuildScript.GetBuildGroups();
-            if (buildGroups.appendAssetHash)
-            {
-                var directory = MoonAssetConfig.k_Editor_DlcOutputPath;
-
-                var manifest = BuildScript.GetManifest();
-
-                // customAssets append hash
-                foreach (var item in manifest.rawBundles)
-                {
-                    var fileName = item.name;
-                    var newName = MoonAssetConfig.AppendHashToFileName(fileName, item.hash);
-
-                    item.name = newName;
-
-                    var oldFilePath = directory + "/" + fileName;
-                    var newFilePath = directory + "/" + newName;
-
-                    File.Delete(newFilePath);
-                    File.Move(oldFilePath, newFilePath);
-                }
-
-                EditorUtility.SetDirty(manifest);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
-        }
+        //        EditorUtility.SetDirty(manifest);
+        //        AssetDatabase.SaveAssets();
+        //        AssetDatabase.Refresh();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.ERROR(e);
+        //    }
+        //    finally
+        //    {
+        //        EditorUtility.ClearProgressBar();
+        //    }
+        //}
 
         public static string GetBuildTargetAppName(BuildTarget target)
         {

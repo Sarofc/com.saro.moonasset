@@ -7,7 +7,7 @@ using UnityEditor.Build.Pipeline.Tasks;
 
 namespace Saro.MoonAsset.Build
 {
-    public static class SBPBuildAssetBundle
+    public static class BuildAssetBundle_SBP
     {
         public static ReturnCode BuildAssetBundles(
             string outputPath,

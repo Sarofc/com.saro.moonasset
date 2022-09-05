@@ -1,18 +1,15 @@
 ﻿using Cysharp.Threading.Tasks;
 using Saro.IO;
 using Saro.Net;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Saro.MoonAsset
 {
     public partial class MoonAsset
     {
-        public IReadOnlyDictionary<string, RawBundleRef> RawAssetMap => m_Manifest.RawAssetMap;
-
-        public byte[] LoadRawAsset(string assetName)
+        public byte[] GetRawFile(string assetName)
         {
-            if (RawAssetMap.TryGetValue(assetName, out var bundle))
+            if (AssetToBundle.TryGetValue(assetName, out var bundle))
             {
                 if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
@@ -23,40 +20,45 @@ namespace Saro.MoonAsset
                 }
             }
 
-            ERROR($"LoadRawAsset: {assetName} not found");
-
+            ERROR($"RawFile not found in manifest : {assetName}");
             return null;
         }
 
-        public async UniTask<byte[]> LoadRawAssetAsync(string assetName)
+        public async UniTask<byte[]> GetRawFileAsync(string assetName)
         {
-            if (RawAssetMap.TryGetValue(assetName, out var bundle))
+            var fullPath = await DownloadRawFileAsync(assetName);
+            if (!string.IsNullOrEmpty(fullPath))
             {
-                var fullPath = await CheckRawBundlesAsync(bundle.name);
+
                 using (var vfs = VFileSystem.Open(fullPath, FileMode.Open, FileAccess.Read))
                 {
                     return vfs.ReadFile(assetName);
                 }
             }
-
-            ERROR($"LoadRawAssetAsync: {assetName} not found");
-
             return null;
         }
 
-        public async UniTask<string> CheckRawBundlesAsync(string bundleName)
+        public async UniTask<string> DownloadRawFileAsync(string assetName)
         {
-            INFO($"<color=green>CheckRawBundlesAsync</color>: {bundleName}");
+            INFO($"<color=green>CheckRawBundlesAsync</color>: {assetName}");
 
-            if (!TryGetAssetPath(bundleName, out var assetPath, out var remoteAssets))
+            if (!AssetToBundle.TryGetValue(assetName, out var bundle))
+            {
+                ERROR($"RawFile not found in manifest : {assetName}");
+                return null;
+            }
+
+            var bundleName = bundle.name;
+
+            if (!TryGetAssetPath(bundleName, out var filePath, out var remoteAssets))
             {
                 if (remoteAssets == null)
                 {
-                    WARN($"remoteAsset is null. can't download from remote. url: {assetPath} path: {bundleName}");
+                    WARN($"remoteAsset is null. can't download from remote. url: {filePath} path: {assetName}");
                     return null;
                 }
 
-                OnLoadRemoteAsset?.Invoke(assetPath, false);
+                OnLoadRemoteAsset?.Invoke(filePath, false);
 
                 var downloadUrl = MoonAssetConfig.GetRemoteAssetURL(remoteAssets.Name);
 
@@ -70,7 +72,7 @@ namespace Saro.MoonAsset
                     var downloadAgent = Downloader.DownloadAsync(new DownloadInfo
                     {
                         DownloadUrl = downloadUrl,
-                        SavePath = assetPath,
+                        SavePath = filePath,
                         Size = remoteAssets.Size,
                         Hash = remoteAssets.Hash,
                     });
@@ -92,10 +94,10 @@ namespace Saro.MoonAsset
                     OnLoadRemoteAssetError?.Invoke(downloadUrl);
                 }
 
-                OnLoadRemoteAsset?.Invoke(assetPath, true);
+                OnLoadRemoteAsset?.Invoke(filePath, true);
             }
 
-            return assetPath;
+            return filePath;
         }
     }
 }

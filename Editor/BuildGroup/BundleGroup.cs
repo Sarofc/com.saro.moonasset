@@ -14,22 +14,23 @@ namespace Saro.MoonAsset.Build
     [Serializable]
     public class BundleGroup
     {
-        public enum ENameBy
+        public enum EPackedBy
         {
-            /// <summary>
-            /// 显示指定包名
-            /// </summary>
-            [Obsolete("没用", true)]
-            Explicit,
-            /// <summary>
-            /// 以路径为包名
-            /// </summary>
-            Path,
-            /// <summary>
-            /// 以目录为包名
-            /// </summary>
-            Directory,
+            [Tooltip("以文件为单位打包")]
+            File = 1,
+            [Tooltip("以目录为单位打包")]
+            Directory = 2,
+            [Tooltip("不打包为ab，直接以文件形式纳入 资源版本管理")]
+            RawFile = 3,
         }
+
+        //public enum ENamedBy
+        //{
+        //    [Tooltip("根据 EPackedBy 自动设置包名")]
+        //    Auto = 1,
+        //    //[Tooltip("自定义包名，使用groupName")]
+        //    //Manual = 2,
+        //}
 
         [Tooltip("搜索路径")]
         [AssetPath(typeof(UnityEngine.Object), true)]
@@ -38,8 +39,12 @@ namespace Saro.MoonAsset.Build
         [Tooltip("搜索通配符，多个之间请用,(逗号)隔开")]
         public string searchPattern = "*";
 
-        [Tooltip("命名规则")]
-        public ENameBy nameBy = ENameBy.Directory;
+        [Tooltip("打包规则")]
+        [UnityEngine.Serialization.FormerlySerializedAs("nameBy")]
+        public EPackedBy packedBy = EPackedBy.Directory;
+
+        //[Tooltip("命名规则")]
+        //public ENamedBy namedBy = ENamedBy.Auto;
 
         [Tooltip("是否为BuiltIn资源")]
         public bool builtIn = false;
@@ -50,7 +55,9 @@ namespace Saro.MoonAsset.Build
         [SerializeField]
         public string[] assets = new string[0];
 
-        public IList<string> GetAssetBundles(Manifest manifest)
+        public bool IsRawFile => packedBy == EPackedBy.RawFile;
+
+        public IList<string> GetBundles(Manifest manifest)
         {
             using (HashSetPool<string>.Rent(out var set))
             {
@@ -74,7 +81,7 @@ namespace Saro.MoonAsset.Build
         /// <returns>根据搜索规则,获取所有资源的路径</returns>
         public string[] GetAssets()
         {
-            if (nameBy == ENameBy.Path)
+            if (packedBy == EPackedBy.File)
             {
                 if (File.Exists(searchPath)) // searchPath 就是路径的情况
                 {
@@ -89,13 +96,17 @@ namespace Saro.MoonAsset.Build
                     assets = GetDirectoryFiles();
                 }
             }
-            else if (nameBy == ENameBy.Directory)
+            else if (packedBy == EPackedBy.Directory)
+            {
+                assets = GetDirectoryFiles();
+            }
+            else if (packedBy == EPackedBy.RawFile)
             {
                 assets = GetDirectoryFiles();
             }
             else
             {
-                throw new NotImplementedException($"type {nameBy} not handled.");
+                throw new NotImplementedException($"type {packedBy} not handled.");
             }
 
             return assets;

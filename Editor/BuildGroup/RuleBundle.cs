@@ -17,5 +17,10 @@ namespace Saro.MoonAsset.Build
         /// 资源路径合集
         /// </summary>
         public string[] assets;
+
+        /// <summary>
+        /// 是否为raw
+        /// </summary>
+        public bool isRawFile;
     }
 }

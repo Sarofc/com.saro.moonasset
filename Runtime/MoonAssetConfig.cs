@@ -18,6 +18,8 @@ namespace Saro.MoonAsset
         public readonly static string k_Editor_BuildOutputPath = $"ExtraAssets/Build/{GetCurrentPlatformName()}";
         public readonly static string k_Editor_DlcOutputPath = $"ExtraAssets/{k_Dlc}/{GetCurrentPlatformName()}";
 
+        public readonly static string k_Editor_ResRawFolderPath = $"Assets/ResRaw";
+
         private static string GetPlatformName_Editor(BuildTarget target)
         {
             switch (target)
@@ -56,9 +58,7 @@ namespace Saro.MoonAsset
         public const string k_ManifestAsset = "manifest" + k_AssetExtension;
         public const string k_TmpManifestAsset = k_ManifestAsset + ".tmp";
         public const string k_AssetExtension = ".assets";
-
-        public const string k_AssetBundleFoler = "Bundle";
-        public const string k_RawFolder = "Raw";
+        public const string k_RawAssetExtension = ".raw";
 
         public readonly static string k_BasePath = $"{Application.streamingAssetsPath}/{k_Dlc}/{GetCurrentPlatformName()}";
         public readonly static string k_DlcPath = $"{Application.persistentDataPath}/{k_Dlc}/{GetCurrentPlatformName()}";

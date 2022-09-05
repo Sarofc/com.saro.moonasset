@@ -31,7 +31,7 @@ namespace Saro.MoonAsset
         /// </summary>
         public string remoteAssetUrl = "";
 
-        #region AssetBundle
+        #region Bundle
 
         [Header("AssetBundle")]
         /// <summary>
@@ -67,49 +67,6 @@ namespace Saro.MoonAsset
 
         #endregion
 
-        #region RawBundles
-
-        [Header("RawBundles")]
-
-        public string[] rawDirs = new string[0];
-
-        /// <summary>
-        /// 非ab的其他自定义资源，例如数据表什么的
-        /// </summary>
-        public AssetRef[] rawAssets = new AssetRef[0];
-
-        /// <summary>
-        /// 非ab的其他自定义资源bundle
-        /// <code>用FileIO来读取</code>
-        /// <code>这是使用自定义构建来处理吧</code>
-        /// </summary>
-        public RawBundleRef[] rawBundles = new RawBundleRef[0];
-
-        public IReadOnlyDictionary<string, RawBundleRef> RawAssetMap => m_RawAssetMap;
-        private Dictionary<string, RawBundleRef> m_RawAssetMap;
-
-        /// <summary>
-        /// 用于appendhash后，通过简易名称获取完整名称，eg. cards -> cards_xxxxxxxxxxx
-        /// <code>TODO 不够完备，可能会重名</code>
-        /// </summary>
-        /// <param name="singleName"></param>
-        /// <returns></returns>
-        public string GetFullRawBundleName(string singleName)
-        {
-            for (int i = 0; i < rawBundles.Length; i++)
-            {
-                var bundle = rawBundles[i];
-                if (bundle.name.StartsWith(singleName))
-                {
-                    return bundle.name;
-                }
-            }
-
-            return null;
-        }
-
-        #endregion
-
         #region SpriteAtlas
 
         [Header("SpriteToAtlas")]
@@ -141,22 +98,14 @@ namespace Saro.MoonAsset
         {
             // asset bundle
             if (m_AssetToBundle != null && assets.Length <= m_AssetToBundle.Count)
-            {
                 m_AssetToBundle.Clear();
-            }
             else
-            {
                 m_AssetToBundle = new Dictionary<string, BundleRef>(assets.Length, StringComparer.OrdinalIgnoreCase);
-            }
 
             if (m_BundleToDeps != null && bundles.Length <= m_BundleToDeps.Count)
-            {
                 m_BundleToDeps.Clear();
-            }
             else
-            {
                 m_BundleToDeps = new Dictionary<string, BundleRef[]>(bundles.Length, StringComparer.OrdinalIgnoreCase);
-            }
 
             foreach (var item in assets)
             {
@@ -173,52 +122,20 @@ namespace Saro.MoonAsset
 
             for (int i = 0; i < bundles.Length; i++)
             {
-                BundleRef item = bundles[i];
+                var item = bundles[i];
                 m_BundleToDeps[item.name] = Array.ConvertAll(item.deps, id => bundles[id]);
             }
 
-            // raw bundle
-            if (m_RawAssetMap != null && rawAssets.Length <= m_RawAssetMap.Count)
-            {
-                m_RawAssetMap.Clear();
-            }
-            else
-            {
-                m_RawAssetMap = new Dictionary<string, RawBundleRef>(rawAssets.Length);
-            }
-            foreach (var item in rawAssets)
-            {
-                var path = string.Format("{0}/{1}", rawDirs[item.dir], item.name);
-                if (item.bundle >= 0 && item.bundle < rawBundles.Length)
-                {
-                    m_RawAssetMap[path] = rawBundles[item.bundle];
-                }
-                else
-                {
-                    Log.ERROR(string.Format("{0} raw bundle index {1} not exist.", path, item.bundle));
-                }
-            }
-
-            // remote assets
-            if (m_RemoteAssets != null && bundles.Length + rawBundles.Length <= m_RemoteAssets.Count)
-            {
+            // remote asset
+            if (m_RemoteAssets != null && bundles.Length <= m_RemoteAssets.Count)
                 m_RemoteAssets.Clear();
-            }
             else
-            {
-                m_RemoteAssets = new Dictionary<string, IRemoteAssets>(bundles.Length + rawBundles.Length, StringComparer.OrdinalIgnoreCase);
-            }
+                m_RemoteAssets = new Dictionary<string, IRemoteAssets>(bundles.Length, StringComparer.OrdinalIgnoreCase);
 
             for (int i = 0; i < bundles.Length; i++)
             {
                 var bundle = bundles[i];
                 m_RemoteAssets.Add(((IRemoteAssets)bundle).Name, bundle);
-            }
-
-            for (int i = 0; i < rawBundles.Length; i++)
-            {
-                var rawBundle = rawBundles[i];
-                m_RemoteAssets.Add(((IRemoteAssets)rawBundle).Name, rawBundle);
             }
 
             // spriteatlas
@@ -251,14 +168,9 @@ namespace Saro.MoonAsset
             this.assets = other.assets;
             this.bundles = other.bundles;
 
-            this.rawDirs = other.rawDirs;
-            this.rawAssets = other.rawAssets;
-            this.rawBundles = other.rawBundles;
-
             this.m_AssetToBundle = other.m_AssetToBundle;
             this.m_BundleToDeps = other.m_BundleToDeps;
 
-            this.m_RawAssetMap = other.m_RawAssetMap;
             this.m_RemoteAssets = other.m_RemoteAssets;
 
             var json = JsonUtility.ToJson(this);
@@ -309,18 +221,6 @@ namespace Saro.MoonAsset
 #else
             return base.ToString();
 #endif
-        }
-
-        private bool ValidRawAsset(string path)
-        {
-            if (path.EndsWith(".dump")) return false;
-            if (path.EndsWith(".dump.json")) return false;
-            if (path.EndsWith(".dump.txt")) return false;
-            if (path.EndsWith(".meta")) return false;
-
-            // add more
-
-            return true;
         }
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]

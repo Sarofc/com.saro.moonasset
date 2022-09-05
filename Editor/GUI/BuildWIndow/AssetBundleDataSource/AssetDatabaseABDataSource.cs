@@ -101,7 +101,7 @@ namespace Saro.AssetBundleBrowser.AssetBundleDataSource
 
         public string GetRealAssetBundleFolderPath()
         {
-            return MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_AssetBundleFoler;
+            return MoonAssetConfig.k_Editor_DlcOutputPath;
         }
     }
 
