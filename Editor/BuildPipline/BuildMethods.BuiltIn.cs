@@ -10,19 +10,19 @@ namespace Saro.MoonAsset.Build
 {
     internal partial class BuildMethods : IBuildProcessor
     {
-        [MoonAssetBuildMethod(5, "PackVFiles")]
+        [MoonAssetBuildMethod(5, "PackVFiles", tooltip: "打包vfs资源，见实现IVFilePacker接口的类")]
         private static void PackVFiles()
         {
             IVFilePacker.PackVFiles();
         }
 
-        [MoonAssetBuildMethod(10, "ApplyBuildGroups", false)]
+        [MoonAssetBuildMethod(10, "ApplyBuildGroups", false, tooltip: "应用 BuildGroups 配置，生成资源打包清单")]
         private static void ApplyBuildGroups()
         {
             BuildScript.ApplyBuildGroups();
         }
 
-        [MoonAssetBuildMethod(20, "Build AssetBundles", false)]
+        [MoonAssetBuildMethod(20, "Build AssetBundles", false, tooltip: "打ab、rawfile")]
         private static void BuildAssetBundles()
         {
             var watch = new System.Diagnostics.Stopwatch();
@@ -37,7 +37,6 @@ namespace Saro.MoonAsset.Build
             AddManfestVersion();
         }
 
-        //[MoonAssetBuildMethod(41, "Add ManfestVersion")]
         private static void AddManfestVersion()
         {
             var manifest = BuildScript.GetManifest();
@@ -48,7 +47,7 @@ namespace Saro.MoonAsset.Build
             Manifest.Build(manifest);
         }
 
-        [MoonAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false)]
+        [MoonAssetBuildMethod(44, "Upload Assets to FileServer(based on Manifest)", false, tooltip: "根据打包后的manifest文件，将资源上传到服务器，资源服url在manifest里配置")]
         private static void UploadAssetsToFileServerUseManifest()
         {
             var folderToUpload = MoonAssetConfig.k_Editor_DlcOutputPath;
@@ -91,7 +90,7 @@ namespace Saro.MoonAsset.Build
             GC.Collect();
         }
 
-        [MoonAssetBuildMethod(45, "Copy to DLC Folder", false)]
+        [MoonAssetBuildMethod(45, "Copy to DLC Folder", false, tooltip: "根据 BuildGroups 的 BuiltIn标记 将DLC目录指定资源拷贝到StreammingAssets")]
         private static void CopyDlcFolderToStreammingAssets()
         {
             var sb = new StringBuilder(102400);
@@ -161,7 +160,7 @@ namespace Saro.MoonAsset.Build
             AssetDatabase.Refresh();
         }
 
-        [MoonAssetBuildMethod(50, "Build Player", false)]
+        [MoonAssetBuildMethod(50, "Build Player", false, tooltip: "打包")]
         private static void BuildPlayer()
         {
             FileUtility.BuildIndexes();
