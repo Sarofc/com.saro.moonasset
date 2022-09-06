@@ -1,6 +1,11 @@
-﻿using Saro.Utility;
+﻿using Cysharp.Threading.Tasks;
+using Saro.Net;
+using Saro.Utility;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Policy;
+using System.Text;
 
 namespace Saro.MoonAsset
 {
@@ -18,10 +23,12 @@ namespace Saro.MoonAsset
             }
         }
 
-        public string VerifyAllAssetsUseManifest(Action<VerifyProgressData> progress = null)
+        public string VerifyAllAssetsUseManifest(Action<VerifyProgressData> progress = null, List<DownloadInfo> downloadInfos = null)
         {
-            string result = null;
+            if (downloadInfos != null) downloadInfos.Clear();
 
+            var sb = new StringBuilder(1024);
+            var num = 0;
             if (Manifest != null)
             {
                 var asset2Bundles = AssetToBundle;
@@ -29,19 +36,20 @@ namespace Saro.MoonAsset
                 var count = asset2Bundles.Count;
                 foreach (var kv in asset2Bundles)
                 {
-                    var assetBundleName = kv.Value.name;
-                    var assetBundleHash = kv.Value.hash;
+                    var bundleName = kv.Value.name;
+                    var bundleHash = kv.Value.hash;
 
                     try
                     {
-                        progress?.Invoke(new VerifyProgressData((float)index / count, assetBundleName));
+                        progress?.Invoke(new VerifyProgressData((float)index / count, bundleName));
                     }
                     catch (Exception e)
                     {
                         ERROR(e.ToString());
                     }
 
-                    if (TryGetAssetPath(assetBundleName, out var bundlePath, out var remoteAssets))
+                    bool exists = TryGetAssetPath(bundleName, out var bundlePath, out var remoteAssets);
+                    if (exists)
                     {
                         if (FileUtility.IsAndroidStreammingAssetPath(bundlePath))
                         {
@@ -51,21 +59,25 @@ namespace Saro.MoonAsset
                         else
                         {
                             // 校验hash
-                            using (var fs = new FileStream(assetBundleHash, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            using (var fs = new FileStream(bundlePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
                                 var hash = HashUtility.GetMd5HexHash(fs);
-                                if (!HashUtility.VerifyMd5HexHash(assetBundleHash, hash))
+                                if (!HashUtility.VerifyMd5HexHash(bundleHash, hash))
                                 {
-                                    result = ($"verify {assetBundleName}'s hash failed. reason: md5 missmatch [{assetBundleHash}] [{hash}]");
-                                    break;
+                                    AddToDownloadInfos(downloadInfos, bundlePath, remoteAssets);
+
+                                    sb.AppendLine(($"{bundleName}. hash missmatch."));
+                                    num++;
                                 }
                             }
                         }
                     }
                     else
                     {
-                        result = ($"verify {assetBundleName} failed. reason: file not found.");
-                        break;
+                        AddToDownloadInfos(downloadInfos, bundlePath, remoteAssets);
+
+                        sb.AppendLine(($"{bundleName}.  file not found."));
+                        num++;
                     }
 
                     index++;
@@ -73,10 +85,59 @@ namespace Saro.MoonAsset
             }
             else
             {
-                result = ("manifest == null，can't verify assets");
+                sb.AppendLine(("manifest == null，can't verify assets"));
             }
 
-            return result;
+            if (num > 0)
+            {
+                sb.Insert(0, $"num: {num}\n");
+            }
+
+            return sb.ToString();
+
+            static void AddToDownloadInfos(List<DownloadInfo> infos, string savePath, IRemoteAssets remoteAssets)
+            {
+                if (remoteAssets == null)
+                {
+                    return;
+                }
+
+                infos?.Add(new DownloadInfo
+                {
+                    DownloadUrl = MoonAssetConfig.GetRemoteAssetURL(remoteAssets.Name),
+                    SavePath = savePath,
+                    Hash = remoteAssets.Hash,
+                    Size = remoteAssets.Size,
+                });
+            }
+        }
+
+        /// <summary>
+        /// TODO，此方法不要用。
+        /// 应该是搞个 分包管理器，自动下载，或手动下载。
+        /// </summary>
+        /// <returns></returns>
+        public async UniTask<bool> DownloadAllAssetsUseManifest()
+        {
+            var infos = new List<DownloadInfo>(1024);
+            VerifyAllAssetsUseManifest(downloadInfos: infos);
+            if (infos.Count > 0)
+            {
+                var tasks = new UniTask[infos.Count];
+                for (int i = 0; i < infos.Count; i++)
+                {
+                    DownloadInfo info = infos[i];
+                    var agent = Downloader.DownloadAsync(info);
+                    tasks[i] = agent.ToUniTask();
+                }
+
+                await UniTask.WhenAll(tasks);
+
+                infos.Clear();
+                VerifyAllAssetsUseManifest(downloadInfos: infos);
+            }
+
+            return infos.Count == 0;
         }
     }
 }

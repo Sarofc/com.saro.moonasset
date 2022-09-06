@@ -13,10 +13,7 @@ namespace Saro.MoonAsset
             {
                 if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
-                    using (var vfs = VFileSystem.Open(fullPath, FileMode.Open, FileAccess.Read))
-                    {
-                        return vfs.ReadFile(assetName);
-                    }
+                    return File.ReadAllBytes(fullPath);
                 }
             }
 
@@ -26,19 +23,27 @@ namespace Saro.MoonAsset
 
         public async UniTask<byte[]> GetRawFileAsync(string assetName)
         {
-            var fullPath = await DownloadRawFileAsync(assetName);
+            var fullPath = await GetRawFilePathAsync(assetName);
             if (!string.IsNullOrEmpty(fullPath))
             {
+                return File.ReadAllBytes(fullPath);
+            }
+            return null;
+        }
 
-                using (var vfs = VFileSystem.Open(fullPath, FileMode.Open, FileAccess.Read))
+        public string GetRawFilePath(string assetName)
+        {
+            if (AssetToBundle.TryGetValue(assetName, out var bundle))
+            {
+                if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
-                    return vfs.ReadFile(assetName);
+                    return fullPath;
                 }
             }
             return null;
         }
 
-        public async UniTask<string> DownloadRawFileAsync(string assetName)
+        public async UniTask<string> GetRawFilePathAsync(string assetName)
         {
             INFO($"<color=green>CheckRawBundlesAsync</color>: {assetName}");
 

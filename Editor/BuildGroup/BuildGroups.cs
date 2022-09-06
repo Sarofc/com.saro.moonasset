@@ -25,10 +25,10 @@ namespace Saro.MoonAsset.Build
         private readonly Dictionary<string, HashSet<string>> m_Tracker = new(1024, StringComparer.Ordinal);
 
         [Header("Settings")]
-        [Tooltip("是否用hash代替bundle名称")]
+        [Tooltip("是否用hash代替bundle名称\nappendAssetHash=true时，使用crc，否则使用md5")]
         public bool nameBundleByHash = true;
 
-        [Tooltip("TODO 在asset名字后面，补上文件hash，避免cdn缓存问题")]
+        [Tooltip("在asset名字后面，补上文件hash，避免cdn缓存问题")]
         public bool appendAssetHash = true;
 
         [Tooltip("不被打包的资源，全小写")]
@@ -93,7 +93,7 @@ namespace Saro.MoonAsset.Build
             OptimizeAssets();
 
             // 处理unity图集
-            ProcessSpriteAtlases();
+            ProcessSpriteAtlases_SBP();
 
             // 再保存
             Save();
@@ -458,7 +458,8 @@ namespace Saro.MoonAsset.Build
         private readonly Dictionary<string, HashSet<string>> m_SpriteAtlasTracker = new(128);
         private readonly Dictionary<string, string> m_SpriteToAtlas = new(128);
 
-        private void ProcessSpriteAtlases()
+        // 适用于 SBP 打包管线，spriteatlas打ab，散图不打ab
+        private void ProcessSpriteAtlases_SBP()
         {
             // 保险起见，确保图集引用正确。因为图集改动后，spriteatlas引用不会立刻生效
             SpriteAtlasUtility.PackAllAtlases(EditorUserBuildSettings.activeBuildTarget);
@@ -515,7 +516,7 @@ namespace Saro.MoonAsset.Build
             ruleSprites = m_SpriteToAtlas.Select(x => new RuleSprite { spritePath = x.Key, atlasPath = x.Value }).ToArray();
         }
 
-        // 适用于 legacy 打包管线，spriteatlas不打包，散图打成一个ab
+        // 适用于 legacy 打包管线，spriteatlas不打ab，散图打成一个ab
         private void ProcessSpriteAtlases_Legacy()
         {
             m_SpriteAtlasTracker.Clear();

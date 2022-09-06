@@ -182,7 +182,7 @@ namespace Saro.MoonAsset.Update
                }
             };
 
-            Saro.UI.UIManager.Current.Queue(EDefaultUI.UIAlertDialog, 0, info, EUILayer.Top);
+            Saro.UI.UIManager.Current.QueueAsync(EDefaultUI.UIAlertDialog, 0, info, EUILayer.Top);
         }
 
         private Manifest LoadLocalManifestAsync()
@@ -288,9 +288,9 @@ namespace Saro.MoonAsset.Update
 
                 if (m_HasDownloadFile.Contains(info.DownloadUrl)) continue;
 
-                var httpDownload = Downloader.DownloadAsync(info);
+                var agent = Downloader.DownloadAsync(info);
 
-                var task = httpDownload.ToUniTask();
+                var task = agent.ToUniTask();
                 tasks.Add(task);
             }
 

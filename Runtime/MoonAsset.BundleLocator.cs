@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Saro.Core;
 
 namespace Saro.MoonAsset
 {
@@ -22,7 +23,7 @@ namespace Saro.MoonAsset
             // 1. 编辑器模式直接加载源文件
             // 2. 模拟模式，优先加载打包目录
 #if UNITY_EDITOR
-            if (MoonAsset.s_Mode == MoonAsset.EMode.Simulate)
+            if (s_Mode == EMode.Simulate)
             {
                 locators.Add(new LocalBundleLocator(MoonAssetConfig.k_Editor_DlcOutputPath));
             }

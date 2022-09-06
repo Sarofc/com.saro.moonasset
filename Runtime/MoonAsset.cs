@@ -21,18 +21,12 @@ namespace Saro.MoonAsset
 
     public sealed partial class MoonAsset : IAssetManager
     {
-        /// <summary>
-        /// 加载远端资源失败委托，统一托管
-        /// </summary>
+        public Action<string, bool> OnLoadRemoteAsset { get; set; }
+
         public Action<string> OnLoadRemoteAssetError { get; set; } = (assetName) =>
         {
             ERROR($" <color=blue>[auto]</color> OnLoadRemoteAssetError. download error. assetName: {assetName}");
         };
-
-        /// <summary>
-        /// 加载远端资源状态委托，false:开始加载 true:完成加载
-        /// </summary>
-        public Action<string, bool> OnLoadRemoteAsset { get; set; }
 
         /// <summary>
         /// 当前资源清单
@@ -264,7 +258,22 @@ namespace Saro.MoonAsset
                 m_BundleHandleMap.Remove(handle.AssetUrl);
             }
 
-            INFO($"<color=red>UnloadUnusedAssets. Time: {Time.unscaledTime}</color>");
+            INFO($"<color=red>UnloadUnusedAssets.</color>");
+        }
+
+        public void DeleteDLC()
+        {
+            if (System.IO.Directory.Exists(MoonAssetConfig.k_DlcPath))
+            {
+                try
+                {
+                    System.IO.Directory.Delete(MoonAssetConfig.k_DlcPath, true);
+                }
+                catch (Exception e)
+                {
+                    ERROR(e.ToString());
+                }
+            }
         }
 
         #endregion

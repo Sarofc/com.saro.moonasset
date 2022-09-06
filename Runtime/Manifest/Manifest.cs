@@ -123,7 +123,8 @@ namespace Saro.MoonAsset
             for (int i = 0; i < bundles.Length; i++)
             {
                 var item = bundles[i];
-                m_BundleToDeps[item.name] = Array.ConvertAll(item.deps, id => bundles[id]);
+                m_BundleToDeps[item.name] =
+                    item.deps != null ? Array.ConvertAll(item.deps, id => bundles[id]) : null;
             }
 
             // remote asset

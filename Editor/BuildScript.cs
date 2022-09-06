@@ -102,7 +102,7 @@ namespace Saro.MoonAsset.Build
                 return;
 
             // 配置宏定义
-            var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
+            //var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
 
             var buildPlayerOptions = new BuildPlayerOptions
             {
@@ -124,62 +124,19 @@ namespace Saro.MoonAsset.Build
 
             BuildPipeline.BuildPlayer(buildPlayerOptions);
 
-            EndOverrideSymbols(overrideSymbols, originalSymbols);
+            //EndOverrideSymbols(overrideSymbols, originalSymbols);
 
             //Utility.OpenFolderUtility.OpenDirectory(outputFolder);
             //Debug.LogError("Open Folder: " + outputFolder);
         }
 
-        private static int s_OverrideSymbolsIndex = 0;
-        // 开始覆盖宏
-        public static (bool overrideSymbols, string[] originalSymbols) BeginOverrideSymbols()
-        {
-            if (s_OverrideSymbolsIndex++ > 0)
-            {
-                s_OverrideSymbolsIndex = 0;
-                Log.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
-            }
-
-            var namedBuildTarget =
-                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            var overrideSymbols = GetSettings().overrideSymbols;
-            if (overrideSymbols)
-            {
-                PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var originalSymbols);
-                var newSymbols = GetSettings().scriptingDefineSymbols;
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
-                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-                Log.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
-
-                return (overrideSymbols, originalSymbols);
-            }
-
-            return (overrideSymbols, null);
-        }
-
-        // 还原宏
-        public static void EndOverrideSymbols(bool overrideSymbols, string[] originalSymbols)
-        {
-            if (overrideSymbols)
-            {
-                var namedBuildTarget =
-                    NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalSymbols);
-
-                Log.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
-            }
-
-            s_OverrideSymbolsIndex--;
-
-        }
-
         public static void BuildAssetBundles()
         {
-            // TODO 打AB的时候，需不需要设置宏？
+            //var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
 
             BuildAssetBundles_SBP();
+
+            //EndOverrideSymbols(overrideSymbols, originalSymbols);
         }
 
         public static void AppendBundleHash()
@@ -383,117 +340,6 @@ namespace Saro.MoonAsset.Build
             AssetDatabase.Refresh();
         }
 
-        //public static void BuildRawBundles()
-        //{
-        //    try
-        //    {
-        //        EditorUtility.DisplayProgressBar("BuildCustomAssets", "start build", 0);
-
-        //        var buildGroups = GetBuildGroups();
-        //        var customGroups = buildGroups.rawGroups;
-
-        //        var outputDirectory = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder;
-        //        if (Directory.Exists(outputDirectory))
-        //        {
-        //            Directory.Delete(outputDirectory, true);
-        //        }
-
-        //        Directory.CreateDirectory(outputDirectory);
-
-        //        var dirs = new List<string>();
-        //        var assetRefs = new List<AssetRef>();
-        //        var bundleRefs = new List<RawBundleRef>();
-
-        //        for (int k = 0; k < customGroups.Length; k++)
-        //        {
-        //            RawGroup group = customGroups[k];
-        //            var assets = group.assets;
-
-        //            var dst = outputDirectory + "/" + group.groupName;
-
-        //            var directory = Path.GetDirectoryName(dst);
-        //            if (!Directory.Exists(directory))
-        //            {
-        //                Directory.CreateDirectory(directory);
-        //            }
-
-        //            if (File.Exists(dst))
-        //            {
-        //                File.Delete(dst);
-        //            }
-
-        //            if (assets.Count > 0)
-        //            {
-        //                using (var vfs = VFileSystem.Open(dst, FileMode.CreateNew, FileAccess.Write, assets.Count,
-        //                           assets.Count))
-        //                {
-        //                    for (int i = 0; i < assets.Count; i++)
-        //                    {
-        //                        var asset = assets[i];
-        //                        var fileName = asset.name;
-
-        //                        EditorUtility.DisplayProgressBar("BuildCustomAssets",
-        //                            $"pack {group.groupName}/{fileName}", ((i + 1) / (float)assets.Count));
-
-        //                        var dir = Path.GetDirectoryName(fileName).Replace("\\", "/");
-        //                        dir = string.IsNullOrEmpty(dir) ? group.groupName : group.groupName + "/" + dir;
-        //                        var index = dirs.FindIndex(o => o.Equals(dir));
-        //                        if (index == -1)
-        //                        {
-        //                            index = dirs.Count;
-        //                            dirs.Add(dir);
-        //                        }
-
-        //                        if (!group.disableAssetName)
-        //                        {
-        //                            assetRefs.Add(new AssetRef
-        //                            {
-        //                                name = Path.GetFileName(fileName),
-        //                                dir = index,
-        //                                bundle = k,
-        //                            });
-        //                        }
-
-        //                        var src = group.searchPaths[asset.dir] + "/" + fileName;
-        //                        var name = group.groupName + "/" + fileName;
-        //                        vfs.WriteFile(name, src);
-        //                    }
-
-        //                    Log.ERROR(string.Join(", ", vfs.GetAllFileInfos()));
-        //                    Log.ERROR("vfs file count:" + vfs.FileCount);
-        //                }
-
-        //                using (var fs = File.OpenRead(dst))
-        //                {
-        //                    bundleRefs.Add(new RawBundleRef
-        //                    {
-        //                        name = MoonAssetConfig.k_RawFolder + "/" + group.groupName,
-        //                        size = fs.Length,
-        //                        hash = HashUtility.GetMd5HexHash(fs),
-        //                    });
-        //                }
-        //            }
-        //        }
-
-        //        var manifest = BuildScript.GetManifest();
-        //        manifest.rawDirs = dirs.ToArray();
-        //        manifest.rawAssets = assetRefs.ToArray();
-        //        manifest.rawBundles = bundleRefs.ToArray();
-
-        //        EditorUtility.SetDirty(manifest);
-        //        AssetDatabase.SaveAssets();
-        //        AssetDatabase.Refresh();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Log.ERROR(e);
-        //    }
-        //    finally
-        //    {
-        //        EditorUtility.ClearProgressBar();
-        //    }
-        //}
-
         public static string GetBuildTargetAppName(BuildTarget target)
         {
             string name = PlayerSettings.productName;
@@ -551,6 +397,53 @@ namespace Saro.MoonAsset.Build
         internal static Settings GetSettings()
         {
             return GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
+        }
+
+
+        // TODO 覆盖宏功能，需要更多测试，先关掉。
+        // 打 代码、ab、包体，可能存在代码不统一的问题
+        private static int s_OverrideSymbolsIndex = 0;
+        // 开始覆盖宏
+        public static (bool overrideSymbols, string[] originalSymbols) BeginOverrideSymbols()
+        {
+            if (s_OverrideSymbolsIndex++ > 0)
+            {
+                s_OverrideSymbolsIndex = 0;
+                Log.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
+            }
+
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            var overrideSymbols = GetSettings().overrideSymbols;
+            if (overrideSymbols)
+            {
+                PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var originalSymbols);
+                var newSymbols = GetSettings().scriptingDefineSymbols;
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+                Log.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
+
+                return (overrideSymbols, originalSymbols);
+            }
+
+            return (overrideSymbols, null);
+        }
+
+        // 还原宏
+        public static void EndOverrideSymbols(bool overrideSymbols, string[] originalSymbols)
+        {
+            if (overrideSymbols)
+            {
+                var namedBuildTarget =
+                    NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
+                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalSymbols);
+
+                Log.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
+            }
+
+            s_OverrideSymbolsIndex--;
         }
     }
 }

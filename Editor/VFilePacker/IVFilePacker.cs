@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Saro.MoonAsset.Build
 {
@@ -9,6 +10,9 @@ namespace Saro.MoonAsset.Build
         static void PackVFiles()
         {
             var dstFolder = MoonAssetConfig.k_Editor_ResRawFolderPath;
+            if (!Directory.Exists(dstFolder))
+                Directory.CreateDirectory(dstFolder);
+
             var types = Saro.Utility.ReflectionUtility.GetSubClassTypesAllAssemblies(typeof(IVFilePacker));
             foreach (var type in types)
             {

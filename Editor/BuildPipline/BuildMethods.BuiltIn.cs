@@ -10,54 +10,16 @@ namespace Saro.MoonAsset.Build
 {
     internal partial class BuildMethods : IBuildProcessor
     {
-        [MoonAssetBuildMethod(-2, "ClearAssetBundleNames", false)]
-        private static void ClearAssetBundles()
-        {
-            BuildScript.ClearAssetBundleNames();
-        }
-
-        //[XAssetBuildMethod(-1, "Mark AssetBundleNames", false)]
-        //private static void MarkAssetBundleNames()
-        //{
-        //    XAssetBuildScript.MarkAssetBundleNames();
-        //}
-
-        [MoonAssetBuildMethod(0, "ApplyBuildGroups", false)]
-        private static void ApplyBuildGroups()
-        {
-            BuildScript.ApplyBuildGroups();
-        }
-
-        [MoonAssetBuildMethod(15, "TODO PackVFiles")]
+        [MoonAssetBuildMethod(5, "PackVFiles")]
         private static void PackVFiles()
         {
             IVFilePacker.PackVFiles();
+        }
 
-            //try
-            //{
-            //    // 拷贝数据表到 Extra 里
-            //    {
-            //        var tablePath = "tables/data/config";
-            //        var files = Directory.GetFiles(tablePath, "*", SearchOption.AllDirectories);
-
-            //        foreach (var file in files)
-            //        {
-            //            var fileName = Path.GetFileName(file);
-            //            var dst = MoonAssetConfig.k_Editor_DlcOutputPath + "/" + MoonAssetConfig.k_RawFolder + "/" + fileName;
-
-            //            File.Copy(file, dst, true);
-            //        }
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    Debug.LogError("[XAsset] 打包数据表 error:" + e);
-            //    return;
-            //}
-            //finally
-            //{
-            //    EditorUtility.ClearProgressBar();
-            //}
+        [MoonAssetBuildMethod(10, "ApplyBuildGroups", false)]
+        private static void ApplyBuildGroups()
+        {
+            BuildScript.ApplyBuildGroups();
         }
 
         [MoonAssetBuildMethod(20, "Build AssetBundles", false)]
@@ -116,8 +78,6 @@ namespace Saro.MoonAsset.Build
 
             localFiles.Add(manifestPath);
             remoteFiles.Add(MoonAssetConfig.GetRemoteAssetURL(null, MoonAssetConfig.k_ManifestAsset));
-
-            // TODO filter file
 
             void OnProgress(string fileName, int count, int length)
             {
