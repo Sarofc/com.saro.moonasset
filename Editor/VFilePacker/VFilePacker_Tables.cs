@@ -15,12 +15,12 @@ namespace Saro.MoonAsset.Build
         {
             var dstVFilePath = dstFolder + "/" + vfileName;
 
-            BuildVFile(dstVFilePath, EditorUserBuildSettings.activeBuildTarget);
+            BuildVFile(dstVFilePath);
 
             return true;
         }
 
-        private static void BuildVFile(string vfilePath, BuildTarget target)
+        private static void BuildVFile(string vfilePath)
         {
             try
             {

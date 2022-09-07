@@ -58,6 +58,10 @@ namespace Saro.MoonAsset.Build
             rules.Apply();
         }
 
+        /// <summary>
+        /// 获取打到首包的场景，一般只有main场景
+        /// </summary>
+        /// <returns></returns>
         private static string[] GetBuiltInScenesFromSettings()
         {
             var builtInScenes = GetBuildGroups().scenesInBuild;
@@ -74,14 +78,6 @@ namespace Saro.MoonAsset.Build
             return scenes.ToArray();
         }
 
-        [System.Obsolete("Legacy Build, use SBP now", true)]
-        private static string GetAssetBundleManifestFilePath()
-        {
-            //var relativeAssetBundlesOutputPathForPlatform = Path.Combine("Asset", GetPlatformName());
-            //return Path.Combine(relativeAssetBundlesOutputPathForPlatform, GetPlatformName()) + ".manifest";
-            return null;
-        }
-
         public static void BuildPlayer()
         {
             var targetAppName = GetBuildTargetAppName(EditorUserBuildSettings.activeBuildTarget);
@@ -94,7 +90,7 @@ namespace Saro.MoonAsset.Build
             var builtInScenes = GetBuiltInScenesFromSettings();
             if (builtInScenes.Length == 0)
             {
-                Debug.LogError("Built In Scenes is empty. Nothing to build!");
+                MoonAsset.ERROR("Built In Scenes is empty. Nothing to build!");
                 return;
             }
 
@@ -127,7 +123,7 @@ namespace Saro.MoonAsset.Build
             //EndOverrideSymbols(overrideSymbols, originalSymbols);
 
             //Utility.OpenFolderUtility.OpenDirectory(outputFolder);
-            //Debug.LogError("Open Folder: " + outputFolder);
+            //MoonAsset.ERROR("Open Folder: " + outputFolder);
         }
 
         public static void BuildAssetBundles()
@@ -189,7 +185,7 @@ namespace Saro.MoonAsset.Build
 
             if (retCode != ReturnCode.Success)
             {
-                Debug.LogError("Build AssetBundle Error. code: " + retCode);
+                MoonAsset.ERROR("Build AssetBundle Error. code: " + retCode);
                 return;
             }
 
@@ -255,7 +251,7 @@ namespace Saro.MoonAsset.Build
                 }
                 else
                 {
-                    Debug.LogError(path + " file not exsit.");
+                    MoonAsset.ERROR(path + " file not exsit.");
                 }
             }
 
@@ -284,7 +280,7 @@ namespace Saro.MoonAsset.Build
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"{item.bundle} {index} {Path.GetFileName(path)}");
+                    MoonAsset.ERROR($"{item.bundle} {index} {Path.GetFileName(path)}");
                     throw e;
                 }
             }
@@ -361,7 +357,7 @@ namespace Saro.MoonAsset.Build
 
                 // Add more build targets for your own.
                 default:
-                    Debug.Log("Target not implemented.");
+                    MoonAsset.ERROR("Target not implemented.");
                     return null;
             }
         }
@@ -399,7 +395,6 @@ namespace Saro.MoonAsset.Build
             return GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
         }
 
-
         // TODO 覆盖宏功能，需要更多测试，先关掉。
         // 打 代码、ab、包体，可能存在代码不统一的问题
         private static int s_OverrideSymbolsIndex = 0;
@@ -409,7 +404,7 @@ namespace Saro.MoonAsset.Build
             if (s_OverrideSymbolsIndex++ > 0)
             {
                 s_OverrideSymbolsIndex = 0;
-                Log.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
+                MoonAsset.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
             }
 
             var namedBuildTarget =
@@ -422,7 +417,7 @@ namespace Saro.MoonAsset.Build
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
                 UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
-                Log.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
+                MoonAsset.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
 
                 return (overrideSymbols, originalSymbols);
             }
@@ -440,7 +435,7 @@ namespace Saro.MoonAsset.Build
 
                 PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalSymbols);
 
-                Log.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
+                MoonAsset.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
             }
 
             s_OverrideSymbolsIndex--;

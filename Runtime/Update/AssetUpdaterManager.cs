@@ -199,7 +199,8 @@ namespace Saro.MoonAsset.Update
             m_Step = EStep.RequestRemoteVersionManifest;
 
             var tmpManifestPath = MoonAssetConfig.k_TmpManifestAssetPath;
-            var request = UnityWebRequest.Get(MoonAssetConfig.GetRemoteAssetURL(MoonAssetConfig.k_ManifestAsset));
+            var url = MoonAssetConfig.GetRemoteAssetURL(MoonAssetConfig.k_ManifestAsset);
+            var request = UnityWebRequest.Get(url);
             request.downloadHandler = new DownloadHandlerFile(tmpManifestPath)
             {
                 removeFileOnAbort = true
@@ -212,7 +213,7 @@ namespace Saro.MoonAsset.Update
             }
             catch (Exception e)
             {
-                ERROR(e.ToString());
+                ERROR($"RequestRemoteManifestAsync failed. url: {url}.\n{e.ToString()}");
                 return null;
             }
 
@@ -241,7 +242,7 @@ namespace Saro.MoonAsset.Update
             var diffAssets = Manifest.Diff(local, remote);
             sw.Stop();
 
-            INFO($"diff = [local:{local?.resVersion}] [remote:{remote?.resVersion}] UseRESUME: {m_ManifestVersionSame} CostTimes: {sw.ElapsedMilliseconds} ms \n{ string.Join("\n", diffAssets)}");
+            INFO($"diff = [local:{local?.resVersion}] [remote:{remote?.resVersion}] UseRESUME: {m_ManifestVersionSame} CostTimes: {sw.ElapsedMilliseconds} ms \n{string.Join("\n", diffAssets)}");
 
             var downloadInfos = new List<DownloadInfo>(diffAssets.Count());
 
@@ -262,11 +263,44 @@ namespace Saro.MoonAsset.Update
             return downloadInfos;
         }
 
-        public Func<List<DownloadInfo>, UniTask<bool>> RequestDownloadOperationFunc = (infos) =>
+        public Func<List<DownloadInfo>, UniTask<bool>> RequestDownloadOperationFunc = RequestDownloadOperation_Default;
+
+        private static UniTask<bool> RequestDownloadOperation_Default(List<DownloadInfo> infos)
         {
-            var task = new UniTask<bool>(true);
-            return task;
-        };
+            var cts = new UniTaskCompletionSource<bool>();
+
+            var totalDownloadSize = 0L;
+
+            foreach (var info in infos) totalDownloadSize += info.Size;
+
+            if (totalDownloadSize <= 0) // 任意大小都提示
+            {
+                cts.TrySetResult(true);
+            }
+            else // 大于5m就 提示
+            {
+                var info = new AlertDialogInfo
+                {
+                    title = "下载",
+                    content = $"下载文件大小：{Downloader.FormatBytes(totalDownloadSize)}，是否要下载？\n(支持断点续传，实际情况，只会下载剩余部分)",
+                    leftText = "退出",
+                    rightText = "下载",
+                    clickHandler = state =>
+                    {
+                        if (state == 0)
+                            cts.TrySetResult(false);
+                        else if (state == 1)
+                            cts.TrySetResult(true);
+                        else
+                            cts.TrySetException(new Exception("MessageBox can't handle click: " + state));
+                    }
+                };
+
+                UIManager.Current.QueueAsync(EDefaultUI.UIAlertDialog, 99, info);
+            }
+
+            return cts.Task;
+        }
 
         private async UniTask<bool> DownloadAsync(IList<DownloadInfo> infos)
         {

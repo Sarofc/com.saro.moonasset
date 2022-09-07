@@ -25,15 +25,7 @@ namespace Saro.MoonAsset
         /// </summary>
         public string hash;
 
-        /// <summary>
-        /// 使用虚拟文件系统
-        /// </summary>
-        //public string fileSystem;
-
-        public override string ToString()
-        {
-            return $"{name}|{size}|{hash}";
-        }
+        public override string ToString() => $"{name}|{size}|{hash}";
 
         string IRemoteAssets.Name => name;
 

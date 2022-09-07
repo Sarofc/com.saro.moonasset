@@ -6,9 +6,6 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-//sbp 不支持变体
-//https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
-
 namespace Saro.MoonAsset.Build
 {
     [Serializable]

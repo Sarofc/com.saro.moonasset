@@ -18,13 +18,11 @@ namespace Saro.MoonAsset.Build
         {
             var buildContent = new BundleBuildContent(assetBundleBuilds);
 
-            var buildParams =
-                new BundleBuildParameters(buildTarget, BuildPipeline.GetBuildTargetGroup(buildTarget), outputPath);
+            var buildParams = new BundleBuildParameters(buildTarget, BuildPipeline.GetBuildTargetGroup(buildTarget), outputPath);
 
             buildParams.ContiguousBundles = true;
             buildParams.WriteLinkXML = true;
-
-            buildParams.AppendHash = options.HasFlag(BuildAssetBundleOptions.AppendHashToAssetBundleName);
+            //buildParams.AppendHash = options.HasFlag(BuildAssetBundleOptions.AppendHashToAssetBundleName); // 使用了MoonAsset的appendhash，这个设置无效
 
             if (options.HasFlag(BuildAssetBundleOptions.ChunkBasedCompression))
                 buildParams.BundleCompression = UnityEngine.BuildCompression.LZ4;
@@ -87,11 +85,11 @@ namespace Saro.MoonAsset.Build
             // Writing
             buildTasks.Add(new WriteSerializedFiles());
             buildTasks.Add(new ArchiveAndCompressBundles());
-            //buildTasks.Add(new AppendBundleHash()); // 不使用untiy自带的hash
+            //buildTasks.Add(new AppendBundleHash()); // 使用了MoonAsset的appendhash
             //buildTasks.Add(new PostWritingCallback());
 
             // Generate manifest files
-            // TODO: IMPL manifest generation
+            // IMPL manifest generation，使用了MoonAsset的manifest
 
             return buildTasks;
         }
