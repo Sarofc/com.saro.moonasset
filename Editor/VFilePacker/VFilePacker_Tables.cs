@@ -1,4 +1,4 @@
-using System.IO;
+ï»¿using System.IO;
 using Saro.MoonAsset.Build;
 using UnityEditor;
 using UnityEngine;
@@ -37,12 +37,12 @@ namespace Saro.MoonAsset.Build
                         {
                             string file = files[i];
 
-                            EditorUtility.DisplayCancelableProgressBar("´ò°üÊı¾İ±í", $"{file}", (i + 1f) / files.Length);
+                            EditorUtility.DisplayCancelableProgressBar("æ‰“åŒ…æ•°æ®è¡¨", $"{file}", (i + 1f) / files.Length);
 
                             var result = vfile.WriteFile($"{Path.GetFileName(file)}", file);
                             if (!result)
                             {
-                                Debug.LogError($"[VFilePacker_Tables] ´ò°üÊ§°Ü£º {file} ");
+                                Debug.LogError($"[VFilePacker_Tables] æ‰“åŒ…æ•°æ®è¡¨å¤±è´¥ï¼š {file} ");
                                 continue;
                             }
                         }
@@ -53,7 +53,7 @@ namespace Saro.MoonAsset.Build
             }
             catch (Exception e)
             {
-                Debug.LogError("[VFilePacker_Tables] ´ò°üÊı¾İ±í error:" + e);
+                Debug.LogError("[VFilePacker_Tables] æ‰“åŒ…æ•°æ®è¡¨å¤±è´¥. error:" + e);
                 return;
             }
             finally
