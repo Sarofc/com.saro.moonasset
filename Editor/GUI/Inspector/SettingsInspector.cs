@@ -1,5 +1,5 @@
 ﻿using System;
-using Saro.SaroEditor;
+using Saro.SEditor;
 using System.Collections.Generic;
 using Saro.Utility;
 using UnityEditor;
@@ -15,8 +15,8 @@ namespace Saro.MoonAsset.Build
         {
             base.GetExcludedPropertiesInInspector(excluded);
 
-            excluded.Add(ReflectionUtility.PropertyName(() => Target.overrideSymbols));
-            excluded.Add(ReflectionUtility.PropertyName(() => Target.scriptingDefineSymbols));
+            excluded.Add(TypeUtility.PropertyName(() => Target.overrideSymbols));
+            excluded.Add(TypeUtility.PropertyName(() => Target.scriptingDefineSymbols));
         }
 
         public override void OnInspectorGUI()

@@ -20,9 +20,19 @@ namespace Saro.MoonAsset
             //multiColumnHeader.sortingChanged += OnSortingChanged;
         }
 
+        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
+        {
+            var _item = item as MoonAssetReferenceItem;
+            if (_item == null) return false;
+            var assetUrl = _item.GetAssetURL();
+            if (assetUrl == null) return false;
+            return assetUrl.Contains(search, System.StringComparison.OrdinalIgnoreCase);
+        }
+
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem { id = 0, depth = -1, displayName = "Root" };
+            if (root.children == null) root.children = new();
 
             var assets = MoonAsset.Current.AnalyzeHandles;
 

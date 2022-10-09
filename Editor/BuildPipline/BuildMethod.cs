@@ -30,7 +30,7 @@ namespace Saro.MoonAsset.Build
 
         private static List<BuildMethod> GetBuildMethods()
         {
-            var allTypes = Utility.ReflectionUtility.GetSubClassTypesAllAssemblies(typeof(IBuildProcessor));
+            var allTypes = Utility.TypeUtility.GetSubClassTypesAllAssemblies(typeof(IBuildProcessor));
 
             var ret = new List<BuildMethod>();
 

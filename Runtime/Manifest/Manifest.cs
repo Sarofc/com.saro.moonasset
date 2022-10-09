@@ -12,7 +12,7 @@ namespace Saro.MoonAsset
         /// <summary>
         /// Manifest自己的版本
         /// </summary>
-        [Saro.Attributes.ReadOnly]
+        [Saro.SEditor.ReadOnly]
         public int version = k_Version;
         /// <summary>
         /// 游戏版本
