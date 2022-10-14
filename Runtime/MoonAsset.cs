@@ -118,7 +118,7 @@ namespace Saro.MoonAsset
             s_Mode = EMode.Runtime;
 #endif
 
-            INFO($"加载模式 = {s_Mode}");
+            INFO($"AssetMode = {s_Mode}");
 
             //ClearAssetReference();
 
