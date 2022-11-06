@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Saro.MoonAsset
 {
-
     public class Manifest : ScriptableObject
     {
         public const int k_Version = 1;
         /// <summary>
         /// Manifest自己的版本
         /// </summary>
-        [Saro.SEditor.ReadOnly]
+        [ReadOnly]
         public int version = k_Version;
         /// <summary>
         /// 游戏版本

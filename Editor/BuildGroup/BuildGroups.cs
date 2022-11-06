@@ -1,6 +1,6 @@
-﻿using Saro.SEditor;
-using Saro.Pool;
+﻿using Saro.Pool;
 using Saro.Utility;
+using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +8,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.U2D;
 using UnityEngine;
-using UnityEngine.U2D;
-using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 
 //sbp 不支持变体
 //https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@1.5/manual/UpgradeGuide.html
