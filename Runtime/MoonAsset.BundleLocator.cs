@@ -5,10 +5,16 @@ namespace Saro.MoonAsset
 {
     public partial class MoonAsset
     {
+        [System.Obsolete("Use 'AddDefaultLocators' instead")]
+        public void SetDefaultLocators()
+        {
+            AddDefaultLocators();
+        }
+
         /// <summary>
         /// 设置 MoonAsset 默认 AssetLocator 加载列表
         /// </summary>
-        public void SetDefaultLocators()
+        public void AddDefaultLocators()
         {
             AddBundleLocators(GetDefaultLocators());
         }

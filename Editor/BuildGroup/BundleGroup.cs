@@ -64,7 +64,11 @@ namespace Saro.MoonAsset.Build
                     if (manifest.AssetToBundle.TryGetValue(asset, out var bundle))
                     {
                         set.Add(bundle.name);
-
+                        if (bundle.deps == null)
+                        {
+                            //Log.ERROR($"{bundle}.deps is null");
+                            continue;
+                        }
                         foreach (var dep in bundle.deps)
                         {
                             set.Add(manifest.bundles[dep].name); // 返回依赖
