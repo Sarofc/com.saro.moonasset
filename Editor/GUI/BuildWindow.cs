@@ -89,20 +89,23 @@ namespace Saro.MoonAsset.Build
                     case BuildTarget.Android:
                         EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android));
                         break;
+                    case BuildTarget.WebGL:
+                        EditorGUILayout.LabelField("Scripting Backend: " + PlayerSettings.GetScriptingBackend(BuildTargetGroup.WebGL));
+                        break;
                     default:
                         EditorGUILayout.LabelField("Scripting Backend: Not Iml");
                         break;
                 }
 
                 EditorUserBuildSettings.development = EditorGUILayout.Toggle("Devepment Build: ", EditorUserBuildSettings.development);
-                if (EditorUserBuildSettings.development)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorUserBuildSettings.connectProfiler = EditorGUILayout.Toggle("Connect Profiler: ", EditorUserBuildSettings.connectProfiler);
-                    EditorUserBuildSettings.allowDebugging = EditorGUILayout.Toggle("Script Debugging: ", EditorUserBuildSettings.allowDebugging);
-                    EditorUserBuildSettings.buildScriptsOnly = EditorGUILayout.Toggle("Build Scripts Only: ", EditorUserBuildSettings.buildScriptsOnly);
-                    EditorGUI.indentLevel--;
-                }
+                //if (EditorUserBuildSettings.development)
+                //{
+                //    EditorGUI.indentLevel++;
+                //    EditorUserBuildSettings.connectProfiler = EditorGUILayout.Toggle("Connect Profiler: ", EditorUserBuildSettings.connectProfiler);
+                //    EditorUserBuildSettings.allowDebugging = EditorGUILayout.Toggle("Script Debugging: ", EditorUserBuildSettings.allowDebugging);
+                //    EditorUserBuildSettings.buildScriptsOnly = EditorGUILayout.Toggle("Build Scripts Only: ", EditorUserBuildSettings.buildScriptsOnly);
+                //    EditorGUI.indentLevel--;
+                //}
             }
             GUILayout.EndVertical();
 

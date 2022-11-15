@@ -1,10 +1,11 @@
-﻿#define DEBUG_MOONASSET
+﻿//#define DEBUG_MOONASSET
 
 using Saro.Core;
 using Saro.Net;
 using Saro.Utility;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Saro.MoonAsset
@@ -16,6 +17,10 @@ namespace Saro.MoonAsset
      * WARN
      *
      * 1. 如果资源加载没控制好，需要在合适的时候调用 Resources.UnloadUnusedAssets()
+     * 
+     * INFO
+     * 
+     * 1. webgl 走 indexes，LocalBundleLocator判定为本地存在，然后判断为http链接，走RemoteAssetbundleHandle
      *
      */
 
@@ -102,17 +107,15 @@ namespace Saro.MoonAsset
             //UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        void IService.Awake() => Initialize();
+        void IService.Awake() { }
 
-        void IService.Dispose()
-        {
-        }
+        void IService.Dispose() { }
 
         #endregion
 
         #region API
 
-        private void Initialize()
+        internal async Task InitializeAsync()
         {
 #if !UNITY_EDITOR
             s_Mode = EMode.Runtime;
@@ -122,7 +125,7 @@ namespace Saro.MoonAsset
 
             //ClearAssetReference();
 
-            var manifest = LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
+            var manifest = await LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
             if (manifest != null)
             {
                 OnManifestLoaded(manifest);
@@ -280,7 +283,7 @@ namespace Saro.MoonAsset
 
         #region Private
 
-        internal Manifest LoadLocalManifest(string manifestName)
+        internal async Task<Manifest> LoadLocalManifest(string manifestName)
         {
 #if UNITY_EDITOR
             if (s_Mode == EMode.AssetDatabase)
@@ -291,7 +294,7 @@ namespace Saro.MoonAsset
 
             if (TryGetAssetPath(manifestName, out var manifestPath, out _))
             {
-                string content = FileUtility.ReadAllText(manifestPath);
+                string content = await FileUtility.ReadAllTextAsync(manifestPath);
 
                 if (!string.IsNullOrEmpty(content))
                 {
@@ -329,10 +332,10 @@ namespace Saro.MoonAsset
             }
         }
 
-        private readonly Dictionary<string, AssetHandle> m_AssetHandleMap = new(StringComparer.Ordinal); // 已加载asset
-        private readonly List<AssetHandle> m_LoadingAssetHandles = new(128); // 正在加载asset
-        private readonly List<AssetHandle> m_UnusedAssetHandles = new(128); // 待卸载asset
-        private readonly List<SceneAssetHandle> m_SceneHandles = new(4); // 正在加载/已加载 scene
+        internal readonly Dictionary<string, AssetHandle> m_AssetHandleMap = new(StringComparer.Ordinal); // 已加载asset
+        internal readonly List<AssetHandle> m_LoadingAssetHandles = new(128); // 正在加载asset
+        internal readonly List<AssetHandle> m_UnusedAssetHandles = new(128); // 待卸载asset
+        internal readonly List<SceneAssetHandle> m_SceneHandles = new(4); // 正在加载/已加载 scene
 
         private void UpdateAssets()
         {
@@ -341,6 +344,7 @@ namespace Saro.MoonAsset
                 var handle = m_LoadingAssetHandles[i];
                 if (handle.Update())
                     continue;
+
                 m_LoadingAssetHandles.RemoveAt(i--);
             }
 
@@ -418,7 +422,6 @@ namespace Saro.MoonAsset
                 //    path.StartsWith("ftp://", StringComparison.Ordinal) ||
                 //    path.StartsWith("jar:file://", StringComparison.Ordinal))
                 //{
-                //    // 网络下载，再加载
                 //    handle = new WebAssetHandle();
                 //}
                 //else
@@ -439,7 +442,7 @@ namespace Saro.MoonAsset
 
             __AnalyzeHandle(handle);
 
-            INFO($"LoadAsset: {path}");
+            INFO($"{handle.GetType().Name}: {handle.AssetUrl}");
 
             return handle;
         }
@@ -457,9 +460,9 @@ namespace Saro.MoonAsset
         private readonly Dictionary<string, BundleHandle>
             m_BundleHandleMap = new(128, StringComparer.Ordinal); // 已加载bundle
 
-        private readonly List<BundleHandle> m_LoadingBundleHandles = new(64); // 正在加载bundle
-        private readonly Queue<BundleHandle> m_PendingBundleHandles = new(64); // 待加载bundle
-        private readonly List<BundleHandle> m_UnusedBundleHandles = new(128); // 引用为0，待卸载bundle
+        internal readonly List<BundleHandle> m_LoadingBundleHandles = new(64); // 正在加载bundle
+        internal readonly Queue<BundleHandle> m_PendingBundleHandles = new(64); // 待加载bundle
+        internal readonly List<BundleHandle> m_UnusedBundleHandles = new(128); // 引用为0，待卸载bundle
 
         public IReadOnlyDictionary<string, BundleRef> AssetToBundle => m_Manifest.AssetToBundle;
         public IReadOnlyDictionary<string, BundleRef[]> BundleToDeps => m_Manifest.BundleToDeps;
@@ -566,7 +569,7 @@ namespace Saro.MoonAsset
             {
                 if (remoteAssets != null) // 如果能获取到远端资源信息，就尝试去下载
                 {
-                    handle = new WebBundleAssetHandle
+                    handle = new DownloadBundleAssetHandle
                     {
                         Info = new DownloadInfo
                         {
@@ -585,7 +588,17 @@ namespace Saro.MoonAsset
 
             if (handle == null)
             {
-                handle = async ? new BundleAsyncHandle() : new BundleHandle();
+                if (FileUtility.IsHttpFile(bundlePath)) // http 使用 unitywebrequest 加载ab
+                {
+                    if (async)
+                        handle = new RemoteBundleAsyncHandle();
+                    else
+                        ERROR($"http url MUST be async: {assetBundleName}");
+                }
+                else
+                {
+                    handle = async ? new BundleAsyncHandle() : new BundleHandle();
+                }
             }
 
             handle.AssetUrl = bundlePath;
@@ -594,7 +607,7 @@ namespace Saro.MoonAsset
 
             if (MaxBundlesPerFrame > 0
                 && m_LoadingAssetHandles.Count >= MaxBundlesPerFrame
-                && (handle is BundleAsyncHandle || handle is WebBundleAssetHandle))
+                && (handle is BundleAsyncHandle || handle is DownloadBundleAssetHandle))
             {
                 // 当前异步加载的bundle超过 配置上限，加到待加载队列里去
                 m_PendingBundleHandles.Enqueue(handle);
@@ -603,7 +616,7 @@ namespace Saro.MoonAsset
             {
                 handle.Load();
                 m_LoadingBundleHandles.Add(handle);
-                INFO("LoadBundle: " + handle.AssetUrl);
+                INFO($"{handle.GetType().Name}: {handle.AssetUrl}");
             }
 
             LoadDependencies(handle, assetBundleName, async);
@@ -641,6 +654,7 @@ namespace Saro.MoonAsset
                 var handle = m_LoadingBundleHandles[i];
                 if (handle.Update())
                     continue;
+
                 m_LoadingBundleHandles.RemoveAt(i--);
             }
 

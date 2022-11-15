@@ -56,6 +56,7 @@ namespace Saro.MoonAsset
             if (m_Request == null)
             {
                 Error = AssetUrl + " LoadFromFile failed.";
+                LoadState = ELoadState.Loaded;
                 return;
             }
 

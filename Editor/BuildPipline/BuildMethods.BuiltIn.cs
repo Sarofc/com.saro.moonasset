@@ -157,13 +157,17 @@ namespace Saro.MoonAsset.Build
 
             Log.ERROR(sb.ToString());
 
+            // build indexes copy完成之后，做一次
+            FileUtility.BuildIndexes();
+
             AssetDatabase.Refresh();
         }
 
         [MoonAssetBuildMethod(50, "Build Player", false, tooltip: "打包")]
         private static void BuildPlayer()
         {
-            FileUtility.BuildIndexes();
+            //FileUtility.BuildIndexes();
+
             BuildScript.BuildPlayer();
         }
     }

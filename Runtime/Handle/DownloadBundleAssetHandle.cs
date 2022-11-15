@@ -2,7 +2,7 @@
 
 namespace Saro.MoonAsset
 {
-    public sealed class WebBundleAssetHandle : BundleHandle
+    public sealed class DownloadBundleAssetHandle : BundleHandle
     {
         private IDownloadAgent m_DownloadAgent;
 

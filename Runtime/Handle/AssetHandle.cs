@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Saro.MoonAsset
 {
-    using Object = UnityEngine.Object;
+    using UObject = UnityEngine.Object;
 
     public enum ELoadState
     {
@@ -43,9 +43,9 @@ namespace Saro.MoonAsset
 
         public byte[] Bytes { get; protected set; }
 
-        public Object Asset { get; protected set; }
+        public UObject Asset { get; protected set; }
 
-        public T GetAsset<T>() where T : Object => Asset as T;
+        public T GetAsset<T>() where T : UObject => Asset as T;
 
         internal abstract void Load();
 
@@ -59,18 +59,23 @@ namespace Saro.MoonAsset
         {
             if (!IsDone)
                 return true;
-            if (Completed == null)
-                return false;
-            try
+
+            if (Completed != null)
             {
-                Completed.Invoke(this);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
+                try
+                {
+                    Completed.Invoke(this);
+                    Completed = null;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
             }
 
-            Completed = null;
+            if (IsError)
+                MoonAsset.ERROR(Error);
+
             return false;
         }
 

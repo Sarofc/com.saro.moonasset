@@ -50,9 +50,9 @@ namespace Saro.MoonAsset
                     bool exists = TryGetAssetPath(bundleName, out var bundlePath, out var remoteAssets);
                     if (exists)
                     {
-                        if (FileUtility.IsAndroidStreammingAssetPath(bundlePath))
+                        if (FileUtility.ShouldUseUnityWebRequest(bundlePath))
                         {
-                            // TODO 安卓streammingasset暂时没有文件流接口，先跳过
+                            // TODO 安卓/webgl streammingasset暂时没有文件流接口，先跳过
                             // 原则上 是不是可以默认 安卓包体内的资源是不会丢的？
                         }
                         else

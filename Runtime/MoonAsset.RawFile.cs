@@ -1,19 +1,21 @@
 ﻿using Cysharp.Threading.Tasks;
 using Saro.IO;
 using Saro.Net;
+using Saro.Utility;
 using System.IO;
+using System.Text;
 
 namespace Saro.MoonAsset
 {
     public partial class MoonAsset
     {
-        public byte[] GetRawFile(string assetName)
+        public byte[] GetRawFileBytes(string assetName)
         {
             if (AssetToBundle.TryGetValue(assetName, out var bundle))
             {
                 if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
-                    return File.ReadAllBytes(fullPath);
+                    return FileUtility.ReadAllBytes(fullPath);
                 }
             }
 
@@ -21,12 +23,14 @@ namespace Saro.MoonAsset
             return null;
         }
 
-        public async UniTask<byte[]> GetRawFileAsync(string assetName)
+        public async UniTask<byte[]> GetRawFileBytesAsync(string assetName)
         {
             var fullPath = await GetRawFilePathAsync(assetName);
+            INFO($"GetRawFileAsync 0: {fullPath}");
             if (!string.IsNullOrEmpty(fullPath))
             {
-                return File.ReadAllBytes(fullPath);
+                INFO($"GetRawFileAsync 1: {fullPath}");
+                return await FileUtility.ReadAllBytesAsync(fullPath);
             }
             return null;
         }
@@ -57,6 +61,8 @@ namespace Saro.MoonAsset
 
             if (!TryGetAssetPath(bundleName, out var filePath, out var remoteAssets))
             {
+                INFO($"GetRawFilePathAsync NotFound at TryGetAssetPath: {bundleName}");
+
                 if (remoteAssets == null)
                 {
                     WARN($"remoteAsset is null. can't download from remote. url: {filePath} path: {assetName}");
@@ -94,12 +100,13 @@ namespace Saro.MoonAsset
                     WARN($"[auto] retry download ({retry}/{maxRetry}): {downloadAgent.Info.DownloadUrl}");
                 }
 
+                OnLoadRemoteAsset?.Invoke(filePath, true);
+
                 if (!downloadSuccess)
                 {
                     OnLoadRemoteAssetError?.Invoke(downloadUrl);
+                    filePath = null;
                 }
-
-                OnLoadRemoteAsset?.Invoke(filePath, true);
             }
 
             return filePath;

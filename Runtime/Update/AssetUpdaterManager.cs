@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -185,11 +186,11 @@ namespace Saro.MoonAsset.Update
             Saro.UI.UIManager.Current.QueueAsync(EDefaultUI.UIAlertDialog, 0, info, EUILayer.Top);
         }
 
-        private Manifest LoadLocalManifestAsync()
+        private async Task<Manifest> LoadLocalManifestAsync()
         {
             m_Step = EStep.RequestLocalVersionManifest;
 
-            var localManifest = MoonAsset.Current.LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
+            var localManifest = await MoonAsset.Current.LoadLocalManifest(MoonAssetConfig.k_ManifestAsset);
 
             return localManifest;
         }

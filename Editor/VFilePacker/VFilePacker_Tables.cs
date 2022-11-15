@@ -28,6 +28,11 @@ namespace Saro.MoonAsset.Build
                     File.Delete(vfilePath);
 
                 var tablePath = "GameTools/tables/data/config";
+                if (!Directory.Exists(tablePath))
+                {
+                    Log.INFO("没有数据表数据，跳过: " + tablePath);
+                    return;
+                }
                 var files = Directory.GetFiles(tablePath, "*", SearchOption.AllDirectories);
                 if (files.Length > 0)
                 {

@@ -349,7 +349,8 @@ namespace Saro.MoonAsset.Build
                 case BuildTarget.StandaloneWindows:
                 case BuildTarget.StandaloneWindows64:
                     return string.Format("{1}/{0}.exe", name, version);
-
+                case BuildTarget.WebGL:
+                    return string.Format("{1}/{0}", name, version);
                 //case BuildTarget.StandaloneOSX:
                 //case BuildTarget.iOS:
                 //case BuildTarget.WebGL:

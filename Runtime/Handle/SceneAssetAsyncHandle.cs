@@ -43,14 +43,20 @@ namespace Saro.MoonAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (m_Handle == null || m_Handle.Error != null)
+                            if (m_Handle == null || m_Handle.IsError)
+                            {
+                                Error = $"loadscene failed. url: {m_Handle.AssetUrl} error: {m_Handle.Error}";
                                 return true;
+                            }
 
                             for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
                             {
                                 var item = m_Handle.Dependencies[i];
-                                if (item.Error != null)
+                                if (item == null || item.IsError)
+                                {
+                                    Error = $"load dependencies failed. url: {item.AssetUrl} error: {item.Error}";
                                     return true;
+                                }
                             }
 
                             if (!m_Handle.IsDone)
@@ -79,6 +85,7 @@ namespace Saro.MoonAsset
                     return false;
                 if (m_AsyncOperation != null && !m_AsyncOperation.isDone)
                     return false;
+
                 LoadState = ELoadState.Loaded;
                 return true;
             }
@@ -93,7 +100,6 @@ namespace Saro.MoonAsset
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
                 Error = e.ToString();
                 LoadState = ELoadState.Loaded;
             }
@@ -106,7 +112,7 @@ namespace Saro.MoonAsset
                 m_Handle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
                 LoadState = ELoadState.LoadAssetBundle;
             }
-            else
+            else // editoronly
             {
                 LoadSceneAsync();
             }
