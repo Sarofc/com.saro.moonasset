@@ -1,12 +1,11 @@
 {
   "name": "com.saro.moonasset",
   "version": "0.1.0",
-  "displayName": "MoonAsset-MGF",
-  "description": "Unity资源加载、构建框架，提供一键式出包，并且支持自定义构建流程。",
+  "displayName": "Moon Asset",
+  "description": "Unity\u8d44\u6e90\u52a0\u8f7d\u3001\u6784\u5efa\u6846\u67b6\uff0c\u63d0\u4f9b\u4e00\u952e\u5f0f\u51fa\u5305\uff0c\u5e76\u4e14\u652f\u6301\u81ea\u5b9a\u4e49\u6784\u5efa\u6d41\u7a0b\u3002",
   "unity": "2021.3",
   "dependencies": {
-    "com.unity.scriptablebuildpipeline": "1.19.6",
-    "com.saro.mgf": "https://github.com/Sarofc/com.saro.mgf.git#v0.1.0"
+    "com.unity.scriptablebuildpipeline": "1.19.6"
   },
   "keywords": [
     "asset",
@@ -16,5 +15,6 @@
   "author": {
     "name": "saro",
     "url": "https://github.com/Sarofc"
-  }
+  },
+  "type": "module"
 }
