@@ -42,7 +42,6 @@ namespace Saro.MoonAsset
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
                     Error = e.ToString();
                     LoadState = ELoadState.Loaded;
                 }
