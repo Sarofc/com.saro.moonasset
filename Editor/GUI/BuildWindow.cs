@@ -182,6 +182,7 @@ namespace Saro.MoonAsset.Build
 
                 if (buildMethod.selected) m_Settings.buildMethodFlag |= 1 << index;
                 else m_Settings.buildMethodFlag &= ~(1 << index);
+                EditorUtility.SetDirty(m_Settings); // fix buildMethodFlag 未保存
 
                 rect1.x += rect1.width;
                 rect1.width = 40f;
