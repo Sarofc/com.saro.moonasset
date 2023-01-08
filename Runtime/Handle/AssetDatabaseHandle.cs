@@ -9,7 +9,7 @@
 #endif
 
             if (Asset == null)
-                MoonAsset.ERROR($"load asset failed. AssetUrl: {AssetUrl}");
+                MoonAsset.ERROR($"load asset failed. {nameof(AssetUrl)}: {AssetUrl} {nameof(AssetType)}: {AssetType}");
         }
 
         internal override void Unload(bool unloadAllObjects = true)
