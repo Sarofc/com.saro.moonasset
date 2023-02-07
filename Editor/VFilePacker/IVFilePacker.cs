@@ -3,6 +3,8 @@ using System.IO;
 
 namespace Saro.MoonAsset.Build
 {
+    // TODO vfile 搞一个 buildlog
+
     public interface IVFilePacker
     {
         bool PackVFile(string dstFolder);
