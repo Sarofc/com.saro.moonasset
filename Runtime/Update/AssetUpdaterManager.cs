@@ -66,6 +66,17 @@ namespace Saro.MoonAsset.Update
             Main.onApplicationFocus += OnApplicationFocus;
         }
 
+        void IService.Update()
+        {
+        }
+
+        void IService.Dispose()
+        {
+            Downloader.s_GlobalCompleted -= VerifyCallback;
+
+            Main.onApplicationFocus -= OnApplicationFocus;
+        }
+
         public async UniTask StartUpdate()
         {
             var mode = MoonAsset.s_Mode;
@@ -283,7 +294,7 @@ namespace Saro.MoonAsset.Update
                 var info = new AlertDialogInfo
                 {
                     title = "下载",
-                    content = $"下载文件大小：{Downloader.FormatBytes(totalDownloadSize)}，是否要下载？\n(支持断点续传，实际情况，只会下载剩余部分)",
+                    content = $"下载文件大小：{NetUtility.FormatBytes(totalDownloadSize)}，是否要下载？\n(支持断点续传，实际情况，只会下载剩余部分)",
                     leftText = "退出",
                     rightText = "下载",
                     clickHandler = state =>
@@ -535,17 +546,6 @@ namespace Saro.MoonAsset.Update
         private void ERROR(string msg)
         {
             Log.ERROR("AssetUpdate", msg);
-        }
-
-        void IService.Update()
-        {
-        }
-
-        void IService.Dispose()
-        {
-            Downloader.s_GlobalCompleted -= VerifyCallback;
-
-            Main.onApplicationFocus -= OnApplicationFocus;
         }
     }
 }
