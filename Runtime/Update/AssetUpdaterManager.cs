@@ -201,30 +201,20 @@ namespace Saro.MoonAsset.Update
 
             var tmpManifestPath = MoonAssetConfig.k_TmpManifestAssetPath;
             var url = MoonAssetConfig.GetRemoteAssetURL(MoonAssetConfig.k_ManifestAsset);
-            var request = UnityWebRequest.Get(url);
+            using var request = UnityWebRequest.Get(url);
             request.downloadHandler = new DownloadHandlerFile(tmpManifestPath)
             {
                 removeFileOnAbort = true
             };
-
-            UnityWebRequest _request = null;
-            try
-            {
-                _request = await request.SendWebRequest();
-            }
-            catch (Exception e)
-            {
-                ERROR($"RequestRemoteManifestAsync failed. url: {url}.\n{e.ToString()}");
-                return null;
-            }
+            await request.SendWebRequest();
 
 #if UNITY_2020_1_OR_NEWER
-            if (_request.result != UnityWebRequest.Result.Success)
+            if (request.result != UnityWebRequest.Result.Success)
 #else
             if(_request.isDone && !_request.isNetworkError)
 #endif
             {
-                ERROR(_request.error);
+                ERROR(request.error);
             }
             else
             {
