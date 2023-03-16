@@ -395,51 +395,5 @@ namespace Saro.MoonAsset.Build
         {
             return GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
         }
-
-        // TODO 覆盖宏功能，需要更多测试，先关掉。
-        // 打 代码、ab、包体，可能存在代码不统一的问题
-        private static int s_OverrideSymbolsIndex = 0;
-        // 开始覆盖宏
-        public static (bool overrideSymbols, string[] originalSymbols) BeginOverrideSymbols()
-        {
-            if (s_OverrideSymbolsIndex++ > 0)
-            {
-                s_OverrideSymbolsIndex = 0;
-                MoonAsset.ERROR("BeginOverrideSymbols/EndOverrideSymbols 必须成对出现");
-            }
-
-            var namedBuildTarget =
-                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            var overrideSymbols = GetSettings().overrideSymbols;
-            if (overrideSymbols)
-            {
-                PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var originalSymbols);
-                var newSymbols = GetSettings().scriptingDefineSymbols;
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
-                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-                MoonAsset.INFO($"BeginOverrideSymbols. Set: {string.Join(";", newSymbols)}");
-
-                return (overrideSymbols, originalSymbols);
-            }
-
-            return (overrideSymbols, null);
-        }
-
-        // 还原宏
-        public static void EndOverrideSymbols(bool overrideSymbols, string[] originalSymbols)
-        {
-            if (overrideSymbols)
-            {
-                var namedBuildTarget =
-                    NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-
-                PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalSymbols);
-
-                MoonAsset.INFO($"EndOverrideSymbols. Rest: {string.Join(";", originalSymbols)}");
-            }
-
-            s_OverrideSymbolsIndex--;
-        }
     }
 }

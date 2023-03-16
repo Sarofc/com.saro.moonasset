@@ -158,81 +158,81 @@ namespace Saro.AssetBundleBrowser.AssetBundleModel
             var bundleList = DataSource.GetAllAssetBundleNames();
             return bundleList;
 
-            bool valid = true;
-            HashSet<string> bundleSet = new HashSet<string>();
-            int index = 0;
-            bool attemptedBundleReset = false;
-            while (index < bundleList.Length)
-            {
-                var name = bundleList[index];
-                if (!bundleSet.Add(name))
-                {
-                    LogError("Two bundles share the same name: " + name);
-                    valid = false;
-                }
+            //bool valid = true;
+            //HashSet<string> bundleSet = new HashSet<string>();
+            //int index = 0;
+            //bool attemptedBundleReset = false;
+            //while (index < bundleList.Length)
+            //{
+            //    var name = bundleList[index];
+            //    if (!bundleSet.Add(name))
+            //    {
+            //        LogError("Two bundles share the same name: " + name);
+            //        valid = false;
+            //    }
 
-                int lastDot = name.LastIndexOf('.');
-                if (lastDot > -1)
-                {
-                    var bunName = name.Substring(0, lastDot);
-                    var extraDot = bunName.LastIndexOf('.');
-                    if (extraDot > -1)
-                    {
-                        if (attemptedBundleReset)
-                        {
-                            var message = "Bundle name '" + bunName + "' contains a period.";
-                            message += "  Internally Unity keeps 'bundleName' and 'variantName' separate, but externally treat them as 'bundleName.variantName'.";
-                            message += "  If a bundleName contains a period, the build will (probably) succeed, but this tool cannot tell which portion is bundle and which portion is variant.";
-                            LogError(message);
-                            valid = false;
-                        }
-                        else
-                        {
-                            if (!DataSource.IsReadOnly())
-                            {
-                                DataSource.RemoveUnusedAssetBundleNames();
-                            }
-                            index = 0;
-                            bundleSet.Clear();
-                            bundleList = DataSource.GetAllAssetBundleNames();
-                            attemptedBundleReset = true;
-                            continue;
-                        }
-                    }
+            //    int lastDot = name.LastIndexOf('.');
+            //    if (lastDot > -1)
+            //    {
+            //        var bunName = name.Substring(0, lastDot);
+            //        var extraDot = bunName.LastIndexOf('.');
+            //        if (extraDot > -1)
+            //        {
+            //            if (attemptedBundleReset)
+            //            {
+            //                var message = "Bundle name '" + bunName + "' contains a period.";
+            //                message += "  Internally Unity keeps 'bundleName' and 'variantName' separate, but externally treat them as 'bundleName.variantName'.";
+            //                message += "  If a bundleName contains a period, the build will (probably) succeed, but this tool cannot tell which portion is bundle and which portion is variant.";
+            //                LogError(message);
+            //                valid = false;
+            //            }
+            //            else
+            //            {
+            //                if (!DataSource.IsReadOnly())
+            //                {
+            //                    DataSource.RemoveUnusedAssetBundleNames();
+            //                }
+            //                index = 0;
+            //                bundleSet.Clear();
+            //                bundleList = DataSource.GetAllAssetBundleNames();
+            //                attemptedBundleReset = true;
+            //                continue;
+            //            }
+            //        }
 
 
-                    if (bundleList.Contains(bunName))
-                    {
-                        //there is a bundle.none and a bundle.variant coexisting.  Need to fix that or return an error.
-                        if (attemptedBundleReset)
-                        {
-                            valid = false;
-                            var message = "Bundle name '" + bunName + "' exists without a variant as well as with variant '" + name.Substring(lastDot + 1) + "'.";
-                            message += " That is an illegal state that will not build and must be cleaned up.";
-                            LogError(message);
-                        }
-                        else
-                        {
-                            if (!DataSource.IsReadOnly())
-                            {
-                                DataSource.RemoveUnusedAssetBundleNames();
-                            }
-                            index = 0;
-                            bundleSet.Clear();
-                            bundleList = DataSource.GetAllAssetBundleNames();
-                            attemptedBundleReset = true;
-                            continue;
-                        }
-                    }
-                }
+            //        if (bundleList.Contains(bunName))
+            //        {
+            //            //there is a bundle.none and a bundle.variant coexisting.  Need to fix that or return an error.
+            //            if (attemptedBundleReset)
+            //            {
+            //                valid = false;
+            //                var message = "Bundle name '" + bunName + "' exists without a variant as well as with variant '" + name.Substring(lastDot + 1) + "'.";
+            //                message += " That is an illegal state that will not build and must be cleaned up.";
+            //                LogError(message);
+            //            }
+            //            else
+            //            {
+            //                if (!DataSource.IsReadOnly())
+            //                {
+            //                    DataSource.RemoveUnusedAssetBundleNames();
+            //                }
+            //                index = 0;
+            //                bundleSet.Clear();
+            //                bundleList = DataSource.GetAllAssetBundleNames();
+            //                attemptedBundleReset = true;
+            //                continue;
+            //            }
+            //        }
+            //    }
 
-                index++;
-            }
+            //    index++;
+            //}
 
-            if (valid)
-                return bundleList;
-            else
-                return null;
+            //if (valid)
+            //    return bundleList;
+            //else
+            //    return null;
         }
 
         internal static bool BundleListIsEmpty()
