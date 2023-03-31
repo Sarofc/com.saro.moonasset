@@ -21,14 +21,16 @@ namespace Saro.MoonAsset.Build
 
             public Styles()
             {
-                style_FontItalic = new GUIStyle()
+                style_FontItalic = new GUIStyle(EditorStyles.label)
                 {
-                    fontStyle = FontStyle.Italic
+                    fontStyle = FontStyle.Italic,
+                    richText = true,
                 };
 
-                style_FontBlodAndItalic = new GUIStyle()
+                style_FontBlodAndItalic = new GUIStyle(EditorStyles.label)
                 {
-                    fontStyle = FontStyle.BoldAndItalic
+                    fontStyle = FontStyle.BoldAndItalic,
+                    richText = true,
                 };
             }
         }
