@@ -116,6 +116,9 @@ namespace Saro.MoonAsset.Build
 
         private string[] GetDirectoryFiles()
         {
+            if (string.IsNullOrEmpty(searchPattern))
+                searchPattern = "*"; // incase
+
             var patterns = searchPattern.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             if (!Directory.Exists(searchPath))
             {
