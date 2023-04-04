@@ -90,8 +90,8 @@ namespace Saro.MoonAsset.Build
             GC.Collect();
         }
 
-        [MoonAssetBuildMethod(45, "Copy to DLC Folder", false, tooltip: "根据 BuildGroups 的 BuiltIn标记 将DLC目录指定资源拷贝到StreammingAssets")]
-        private static void CopyDlcFolderToStreammingAssets()
+        [MoonAssetBuildMethod(45, "Copy to DLC Folder", false, tooltip: "根据 BuildGroups 的 BuiltIn标记 将DLC目录指定资源拷贝到StreamingAssets")]
+        private static void CopyDlcFolderToStreamingAssets()
         {
             var sb = new StringBuilder(102400);
 
@@ -136,7 +136,7 @@ namespace Saro.MoonAsset.Build
                 }
                 else
                 {
-                    throw new Exception("CopyDlcFolderToStreammingAssets. bundle not found: " + src);
+                    throw new Exception($"{nameof(CopyDlcFolderToStreamingAssets)}. bundle not found: " + src);
                 }
             }
 
@@ -152,7 +152,7 @@ namespace Saro.MoonAsset.Build
             }
             else
             {
-                throw new Exception("CopyDlcFolderToStreammingAssets. manifest not found: " + manifestPath);
+                throw new Exception($"{nameof(CopyDlcFolderToStreamingAssets)}. manifest not found: " + manifestPath);
             }
 
             Log.ERROR(sb.ToString());
