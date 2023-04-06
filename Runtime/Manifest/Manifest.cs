@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Saro.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -182,7 +183,7 @@ namespace Saro.MoonAsset
         public static Manifest Create(string path)
         {
             var manifest = ScriptableObject.CreateInstance<Manifest>();
-            var content = File.ReadAllText(path);
+            var content = FileUtility.ReadAllText(path);
             manifest.Load(content);
             return manifest;
         }

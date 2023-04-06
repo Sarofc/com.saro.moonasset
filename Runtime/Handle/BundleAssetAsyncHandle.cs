@@ -48,7 +48,7 @@ namespace Saro.MoonAsset
 
                             if (m_BundleHandle.Bundle == null)
                             {
-                                Error = "assetBundle == null";
+                                //Error = "assetBundle == null";
                                 return true;
                             }
 
@@ -87,6 +87,9 @@ namespace Saro.MoonAsset
                 {
                     Asset = m_AssetBundleRequest.asset;
                 }
+
+                if (Asset == null)
+                    Error = $"load asset failed. url: {AssetUrl} type: {AssetType}";
 
                 LoadState = ELoadState.Loaded;
                 return true;

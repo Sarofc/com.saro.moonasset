@@ -23,10 +23,9 @@ namespace Saro.MoonAsset
                 if (LoadState == ELoadState.LoadAssetBundle && m_Request.isDone)
                 {
                     Asset = DownloadHandlerAssetBundle.GetContent(m_Request);
+
                     if (Asset == null)
-                    {
-                        Error = string.Format("unable to load assetBundle:{0}", AssetUrl);
-                    }
+                        Error = $"load assetBundle failed. url: {AssetUrl}";
 
                     LoadState = ELoadState.Loaded;
                 }

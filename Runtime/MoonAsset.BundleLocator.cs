@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Saro.Core;
 
 namespace Saro.MoonAsset
 {
@@ -16,37 +15,28 @@ namespace Saro.MoonAsset
         /// </summary>
         public void AddDefaultLocators()
         {
-            AddBundleLocators(GetDefaultLocators());
-        }
+            // 4.都没有就下载到dlc目录，再加载
+            AddBundleLocator(new RemoteBundleLocator(MoonAssetConfig.k_DlcPath));
 
-        /// <summary>
-        /// MoonAsset 默认 AssetLocator 加载列表
-        /// </summary>
-        public static IList<BundleLocator> GetDefaultLocators()
-        {
-            var locators = new List<BundleLocator>();
+            // 3.再加载base目录
+            AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_BasePath));
 
-            // 1. 编辑器模式直接加载源文件
-            // 2. 模拟模式，优先加载打包目录
+            // 2.先加载dlc目录
+            AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_DlcPath));
+
 #if UNITY_EDITOR
+            // 1. 模拟模式，优先加载打包目录
             if (s_Mode == EMode.Simulate)
             {
-                locators.Add(new LocalBundleLocator(MoonAssetConfig.k_Editor_DlcOutputPath));
+                AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_Editor_DlcOutputPath));
             }
+
+            // 0. 编辑器模式，使用AssetDataBase，不使用bundle
 #endif
-
-            // 1.先加载dlc目录
-            locators.Add(new LocalBundleLocator(MoonAssetConfig.k_DlcPath));
-            // 2.再加载base目录
-            locators.Add(new LocalBundleLocator(MoonAssetConfig.k_BasePath));
-            // 3.都没有就下载到dlc目录，再加载
-            locators.Add(new RemoteBundleLocator(MoonAssetConfig.k_DlcPath));
-
-            return locators;
         }
 
         /// <summary>
-        /// 资源路径定位器
+        /// Bundle路径定位器
         /// </summary>
         /// <param name="assetName">资源相对路径</param>
         /// <param name="assetPath">资源完整路径</param>
@@ -54,19 +44,16 @@ namespace Saro.MoonAsset
         /// <returns>false代表本地没有找到资源</returns>
         public delegate bool BundleLocator(string assetName, ref string assetPath, ref IRemoteAssets remoteAssets);
 
-        private readonly List<BundleLocator> m_AssetLocators = new();
+        private readonly List<BundleLocator> m_BundleLocators = new();
 
-        public void AddBundleLocators(IList<BundleLocator> locators)
-        {
-            foreach (var locator in locators)
-            {
-                AddBundleLocator(locator);
-            }
-        }
-
+        /// <summary>
+        /// 添加Bundle路径定位器
+        /// <code>WARN: 后添加的，先调用</code>
+        /// </summary>
+        /// <param name="locator"></param>
         public void AddBundleLocator(BundleLocator locator)
         {
-            m_AssetLocators.Add(locator);
+            m_BundleLocators.Add(locator);
         }
 
         /// <summary>
@@ -81,17 +68,18 @@ namespace Saro.MoonAsset
             filePath = null;
             remoteAssets = null;
 
-            // bundle 编辑器模式下 根本不会 进来
+            // bundle 编辑器模式下 不会进来这里
 
-            if (m_AssetLocators == null || m_AssetLocators.Count == 0)
+            if (m_BundleLocators == null || m_BundleLocators.Count == 0)
             {
                 ERROR($"AddAssetLocator first");
                 return false;
             }
 
-            for (int i = 0; i < m_AssetLocators.Count; i++)
+            // 后添加的，先调用
+            for (int i = m_BundleLocators.Count - 1; i >= 0; i--)
             {
-                var locator = m_AssetLocators[i];
+                var locator = m_BundleLocators[i];
                 bool result = locator(bundleName, ref filePath, ref remoteAssets);
 
                 if (result)

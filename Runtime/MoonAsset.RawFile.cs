@@ -11,7 +11,7 @@ namespace Saro.MoonAsset
     {
         public byte[] GetRawFileBytes(string assetName)
         {
-            if (AssetToBundle.TryGetValue(assetName, out var bundle))
+            if (TryGetAssetToBundle(assetName, out var bundle))
             {
                 if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
@@ -37,7 +37,7 @@ namespace Saro.MoonAsset
 
         public string GetRawFilePath(string assetName)
         {
-            if (AssetToBundle.TryGetValue(assetName, out var bundle))
+            if (TryGetAssetToBundle(assetName, out var bundle))
             {
                 if (TryGetAssetPath(bundle.name, out var fullPath, out _))
                 {
@@ -51,7 +51,7 @@ namespace Saro.MoonAsset
         {
             INFO($"<color=green>CheckRawBundlesAsync</color>: {assetName}");
 
-            if (!AssetToBundle.TryGetValue(assetName, out var bundle))
+            if (!TryGetAssetToBundle(assetName, out var bundle))
             {
                 ERROR($"RawFile not found in manifest : {assetName}");
                 return null;

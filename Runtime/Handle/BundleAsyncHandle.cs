@@ -32,13 +32,14 @@ namespace Saro.MoonAsset
                 if (LoadState == ELoadState.Loaded)
                     return true;
 
+                LoadState = ELoadState.LoadAssetBundle;
+
                 if (LoadState == ELoadState.LoadAssetBundle && m_Request.isDone)
                 {
                     Asset = m_Request.assetBundle;
-                    if (Asset == null)
-                    {
-                        Error = string.Format("unable to load assetBundle:{0}", AssetUrl);
-                    }
+
+                    if (Bundle == null)
+                        Error = $"load assetBundle failed. url: {AssetUrl}";
 
                     LoadState = ELoadState.Loaded;
                 }
@@ -55,12 +56,9 @@ namespace Saro.MoonAsset
 
             if (m_Request == null)
             {
-                Error = AssetUrl + " LoadFromFile failed.";
+                Error = $"load assetBundle failed. url: {AssetUrl}";
                 LoadState = ELoadState.Loaded;
-                return;
             }
-
-            LoadState = ELoadState.LoadAssetBundle;
         }
 
         internal override void Unload(bool unloadAllObjects = true)

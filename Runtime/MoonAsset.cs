@@ -5,6 +5,7 @@ using Saro.Net;
 using Saro.Utility;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -468,9 +469,22 @@ namespace Saro.MoonAsset
         public IReadOnlyDictionary<string, BundleRef[]> BundleToDeps => m_Manifest.BundleToDeps;
         public IReadOnlyDictionary<string, string> SpriteToAtlas => m_Manifest.SpriteToAtlas;
 
+        private List<Manifest> m_AdditionalManifests = new();
+
+        public void PatchManifest(Manifest manifest)
+        {
+            m_AdditionalManifests.Add(manifest);
+        }
+
+        public void RemoveManifest(Manifest manifest)
+        {
+            m_AdditionalManifests.Remove(manifest);
+        }
+
         internal bool GetAssetBundleName(string assetPath, out string assetBundleName, out string subAssetPath)
         {
             subAssetPath = null;
+
 #if UNITY_EDITOR
             if (s_Mode == EMode.AssetDatabase)
             {
@@ -479,14 +493,14 @@ namespace Saro.MoonAsset
             }
 #endif
 
-            // 检查是否是spriteatlas
-            if (SpriteToAtlas.TryGetValue(assetPath, out var atlasPath))
+            // spriteatlas 需要中转一下
+            if (TryGetSpriteToAtlas(assetPath, out var atlasPath))
             {
                 subAssetPath = atlasPath;
                 assetPath = atlasPath;
             }
 
-            var ret = AssetToBundle.TryGetValue(assetPath, out var bundleRef);
+            var ret = TryGetAssetToBundle(assetPath, out var bundleRef);
             if (ret)
             {
                 assetBundleName = bundleRef.name;
@@ -501,9 +515,33 @@ namespace Saro.MoonAsset
             return ret;
         }
 
+        internal bool TryGetSpriteToAtlas(string assetPath, out string atlasPath)
+        {
+            for (int i = m_AdditionalManifests.Count - 1; i >= 0; i--)
+                if (m_AdditionalManifests[i].SpriteToAtlas.TryGetValue(assetPath, out atlasPath))
+                    return true;
+
+            return SpriteToAtlas.TryGetValue(assetPath, out atlasPath);
+        }
+
+        internal bool TryGetAssetToBundle(string assetPath, out BundleRef bundleRef)
+        {
+            for (int i = m_AdditionalManifests.Count - 1; i >= 0; i--)
+                if (m_AdditionalManifests[i].AssetToBundle.TryGetValue(assetPath, out bundleRef))
+                    return true;
+
+            return AssetToBundle.TryGetValue(assetPath, out bundleRef);
+        }
+
         internal BundleRef[] GetBundleDependencies(string assetBundleName)
         {
-            if (BundleToDeps.TryGetValue(assetBundleName, out BundleRef[] deps))
+            BundleRef[] deps;
+
+            for (int i = m_AdditionalManifests.Count - 1; i >= 0; i--)
+                if (m_AdditionalManifests[i].BundleToDeps.TryGetValue(assetBundleName, out deps))
+                    return deps;
+
+            if (BundleToDeps.TryGetValue(assetBundleName, out deps))
                 return deps;
 
             return null;

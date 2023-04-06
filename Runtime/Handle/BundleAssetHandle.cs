@@ -47,6 +47,9 @@ namespace Saro.MoonAsset
             {
                 Asset = m_BundleHandle.Bundle.LoadAsset(AssetUrl, AssetType);
             }
+
+            if (Asset == null)
+                Error = $"load asset failed. url: {AssetUrl} type: {AssetType}";
         }
 
         internal override void Unload(bool unloadAllObjects = true)

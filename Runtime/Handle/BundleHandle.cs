@@ -18,7 +18,7 @@ namespace Saro.MoonAsset
             Asset = AssetBundle.LoadFromFile(AssetUrl);
 
             if (Bundle == null)
-                Error = "LoadFromFile failed. AsserUrl: " + AssetUrl;
+                Error = $"load assetBundle failed. url: {AssetUrl}";
         }
 
         internal override void Unload(bool unloadAllObjects = true)
