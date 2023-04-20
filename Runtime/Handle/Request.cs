@@ -66,7 +66,6 @@ namespace Saro.MoonAsset
             {
                 const float max_timeout = 10f; // 同步加载，默认超时时间
                 float timeout = max_timeout + Time.realtimeSinceStartup;
-                //var start = Time.realtimeSinceStartup;
                 while (!IsDone)
                 {
                     if (timeout <= Time.realtimeSinceStartup)
@@ -75,7 +74,6 @@ namespace Saro.MoonAsset
                         break;
                     }
                 }
-                //MoonAsset.INFO($"sync load cost: {Time.realtimeSinceStartup - start}");
             }
             else
             {

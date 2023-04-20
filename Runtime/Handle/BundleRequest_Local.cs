@@ -82,24 +82,8 @@ namespace Saro.MoonAsset
 
 #if DEBUG
             if (!IsDone)
-                MoonAsset.ERROR("WaitForCompletion fata error");
+                MoonAsset.ERROR("WaitForCompletion fatal error");
 #endif
         }
-
-        //internal override bool InvokeWaitForCompletion()
-        //{
-        //    int frame = 1000;
-
-        //    while (Update())
-        //    {
-        //        if (--frame == 0)
-        //        {
-        //            MoonAsset.ERROR($"sync load timeout. {AssetUrl}");
-        //            break;
-        //        }
-        //    }
-
-        //    return true;
-        //}
     }
 }

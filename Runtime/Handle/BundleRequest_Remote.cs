@@ -146,7 +146,6 @@ namespace Saro.MoonAsset
             {
                 const float max_timeout = 10f; // 同步加载，默认超时时间
                 float timeout = max_timeout + Time.realtimeSinceStartup;
-                //var start = Time.realtimeSinceStartup;
                 while (!IsDone)
                 {
                     if (timeout <= Time.realtimeSinceStartup)
@@ -157,7 +156,6 @@ namespace Saro.MoonAsset
 
                     Downloader.OnUpdate();
                 }
-                //MoonAsset.INFO($"sync load cost: {Time.realtimeSinceStartup - start}");
             }
             else
             {
@@ -166,7 +164,7 @@ namespace Saro.MoonAsset
 
 #if DEBUG
             if (!IsDone)
-                MoonAsset.ERROR("WaitForCompletion fata error");
+                MoonAsset.ERROR("WaitForCompletion fatal error");
 #endif
         }
     }

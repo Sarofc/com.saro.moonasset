@@ -159,12 +159,12 @@ namespace Saro.MoonAsset
 
             INFO("<color=red>ClearAssetReference</color>");
 
-            foreach (var item in m_AssetHandleMap)
+            foreach (var item in m_RequestMap)
             {
                 item.Value.SetRefCountForce(0);
             }
 
-            foreach (var item in m_BundleHandleMap)
+            foreach (var item in m_BundleRequestMap)
             {
                 item.Value.SetRefCountForce(0);
             }
@@ -186,7 +186,7 @@ namespace Saro.MoonAsset
             return m_Manifest.resVersion.ToString();
         }
 
-        private SceneRequest m_MainSceneHandle;
+        private SceneRequest m_MainSceneRequest;
 
         public IAssetHandle LoadSceneAsync(string path, bool additive = false)
         {
@@ -196,27 +196,27 @@ namespace Saro.MoonAsset
                 return null;
             }
 
-            var handle = new SceneRequest(path, additive);
+            var request = new SceneRequest(path, additive);
             if (!additive)
             {
-                if (m_MainSceneHandle != null)
+                if (m_MainSceneRequest != null)
                 {
-                    m_MainSceneHandle.DecreaseRefCount();
-                    m_MainSceneHandle = null;
+                    m_MainSceneRequest.DecreaseRefCount();
+                    m_MainSceneRequest = null;
                 }
 
-                m_MainSceneHandle = handle;
+                m_MainSceneRequest = request;
             }
 
-            handle.Load();
-            handle.IncreaseRefCount();
-            m_SceneHandles.Add(handle);
+            request.Load();
+            request.IncreaseRefCount();
+            m_SceneRequests.Add(request);
 
-            __AnalyzeHandle(handle);
+            __AnalyzeRequest(request);
 
             INFO($"LoadScene: {path}");
 
-            return handle;
+            return request;
         }
 
         public IAssetHandle LoadAssetAsync(string path, Type type)
@@ -226,9 +226,9 @@ namespace Saro.MoonAsset
 
         public IAssetHandle LoadAsset(string path, Type type)
         {
-            var handle = LoadAssetAsyncInternal(path, type);
-            handle.WaitForCompletion();
-            return handle;
+            var request = LoadAssetAsyncInternal(path, type);
+            request.WaitForCompletion();
+            return request;
         }
 
         /// <summary>
@@ -237,31 +237,31 @@ namespace Saro.MoonAsset
         public void UnloadUnusedAssets(bool immediate = true)
         {
             // asset
-            foreach (var item in m_AssetHandleMap)
+            foreach (var item in m_RequestMap)
             {
                 if (item.Value.IsUnused())
                 {
-                    m_UnusedAssetHandles.Add(item.Value);
+                    m_UnusedRequests.Add(item.Value);
                 }
             }
 
-            foreach (var handle in m_UnusedAssetHandles)
+            foreach (var request in m_UnusedRequests)
             {
-                m_AssetHandleMap.Remove(handle.AssetUrl);
+                m_RequestMap.Remove(request.AssetUrl);
             }
 
             // bundle
-            foreach (var item in m_BundleHandleMap)
+            foreach (var item in m_BundleRequestMap)
             {
                 if (item.Value.IsUnused())
                 {
-                    m_UnusedBundleHandles.Add(item.Value);
+                    m_UnusedBundleRequests.Add(item.Value);
                 }
             }
 
-            foreach (var handle in m_UnusedBundleHandles)
+            foreach (var request in m_UnusedBundleRequests)
             {
-                m_BundleHandleMap.Remove(handle.AssetUrl);
+                m_BundleRequestMap.Remove(request.AssetUrl);
             }
 
             INFO($"<color=red>UnloadUnusedAssets.</color>");
@@ -335,44 +335,44 @@ namespace Saro.MoonAsset
             }
         }
 
-        internal readonly Dictionary<string, Request> m_AssetHandleMap = new(StringComparer.Ordinal); // 已加载asset
-        internal readonly List<Request> m_LoadingAssetHandles = new(128); // 正在加载asset
-        internal readonly List<Request> m_UnusedAssetHandles = new(128); // 待卸载asset
-        internal readonly List<SceneRequest> m_SceneHandles = new(4); // 正在加载/已加载 scene
+        internal readonly Dictionary<string, Request> m_RequestMap = new(StringComparer.Ordinal); // 已加载asset
+        internal readonly List<Request> m_LoadingRequests = new(128); // 正在加载asset
+        internal readonly List<Request> m_UnusedRequests = new(128); // 待卸载asset
+        internal readonly List<SceneRequest> m_SceneRequests = new(4); // 正在加载/已加载 scene
 
         private void UpdateAssets()
         {
-            for (var i = 0; i < m_LoadingAssetHandles.Count; ++i)
+            for (var i = 0; i < m_LoadingRequests.Count; ++i)
             {
-                var handle = m_LoadingAssetHandles[i];
-                if (handle.Update())
+                var request = m_LoadingRequests[i];
+                if (request.Update())
                     continue;
 
-                m_LoadingAssetHandles.RemoveAt(i--);
+                m_LoadingRequests.RemoveAt(i--);
             }
 
-            if (m_UnusedAssetHandles.Count > 0)
+            if (m_UnusedRequests.Count > 0)
             {
-                for (var i = 0; i < m_UnusedAssetHandles.Count; ++i)
+                for (var i = 0; i < m_UnusedRequests.Count; ++i)
                 {
-                    var handle = m_UnusedAssetHandles[i];
-                    if (!handle.IsDone) continue;
+                    var request = m_UnusedRequests[i];
+                    if (!request.IsDone) continue;
 
-                    INFO($"UnloadAsset: {handle.AssetUrl}");
-                    handle.Unload();
-                    m_UnusedAssetHandles.RemoveAt(i--);
+                    INFO($"UnloadAsset: {request.AssetUrl}");
+                    request.Unload();
+                    m_UnusedRequests.RemoveAt(i--);
                 }
             }
 
             bool unloadScene = false;
-            for (var i = 0; i < m_SceneHandles.Count; ++i)
+            for (var i = 0; i < m_SceneRequests.Count; ++i)
             {
-                var handle = m_SceneHandles[i];
-                if (handle.Update() || !handle.IsUnused())
+                var request = m_SceneRequests[i];
+                if (request.Update() || !request.IsUnused())
                     continue;
-                INFO(string.Format("UnloadScene:{0}", handle.AssetUrl));
-                handle.Unload();
-                m_SceneHandles.RemoveAt(i--);
+                INFO(string.Format("UnloadScene:{0}", request.AssetUrl));
+                request.Unload();
+                m_SceneRequests.RemoveAt(i--);
 
                 unloadScene = true;
             }
@@ -403,16 +403,16 @@ namespace Saro.MoonAsset
                 return null;
             }
 
-            if (m_AssetHandleMap.TryGetValue(path, out Request handle)) // 有缓存，直接取
+            if (m_RequestMap.TryGetValue(path, out Request request)) // 有缓存，直接取
             {
-                handle.Update();
-                handle.IncreaseRefCount();
-                return handle;
+                request.Update();
+                request.IncreaseRefCount();
+                return request;
             }
 
             if (GetAssetBundleName(path, out string assetBundleName, out string subAssetPath)) // 没缓存取 ab 里拿
             {
-                handle = new AssetRequest(assetBundleName, subAssetPath);
+                request = new AssetRequest(assetBundleName, subAssetPath);
             }
             else
             {
@@ -429,24 +429,24 @@ namespace Saro.MoonAsset
                 {
                     // 都不是，则使用 AssetDatabase 加载
                     // 真机会报错
-                    handle = new AssetRequest_AssetDatabase();
+                    request = new AssetRequest_AssetDatabase();
                 }
             }
 
-            handle.AssetUrl = path;
-            handle.AssetType = type;
-            handle.MoonAsset = this;
+            request.AssetUrl = path;
+            request.AssetType = type;
+            request.MoonAsset = this;
 
-            m_AssetHandleMap.Add(handle.AssetUrl, handle);
-            m_LoadingAssetHandles.Add(handle);
-            handle.Load();
-            handle.IncreaseRefCount();
+            m_RequestMap.Add(request.AssetUrl, request);
+            m_LoadingRequests.Add(request);
+            request.Load();
+            request.IncreaseRefCount();
 
-            __AnalyzeHandle(handle);
+            __AnalyzeRequest(request);
 
-            INFO($"{handle.GetType().Name}: {handle.AssetUrl}");
+            INFO($"{request.GetType().Name}: {request.AssetUrl}");
 
-            return handle;
+            return request;
         }
 
         #endregion
@@ -459,12 +459,11 @@ namespace Saro.MoonAsset
         /// </summary>
         public int MaxBundlesPerFrame { get; set; } = 0;
 
-        private readonly Dictionary<string, BundleRequest>
-            m_BundleHandleMap = new(128, StringComparer.Ordinal); // 已加载bundle
+        private readonly Dictionary<string, BundleRequest> m_BundleRequestMap = new(128, StringComparer.Ordinal); // 已加载bundle
 
-        internal readonly List<BundleRequest> m_LoadingBundleHandles = new(64); // 正在加载bundle
-        internal readonly Queue<BundleRequest> m_PendingBundleHandles = new(64); // 待加载bundle
-        internal readonly List<BundleRequest> m_UnusedBundleHandles = new(128); // 引用为0，待卸载bundle
+        internal readonly List<BundleRequest> m_LoadingBundleRequests = new(64); // 正在加载bundle
+        internal readonly Queue<BundleRequest> m_PendingBundleRequests = new(64); // 待加载bundle
+        internal readonly List<BundleRequest> m_UnusedBundleRequests = new(128); // 引用为0，待卸载bundle
 
         public IReadOnlyDictionary<string, BundleRef> AssetToBundle => m_Manifest.AssetToBundle;
         public IReadOnlyDictionary<string, BundleRef[]> BundleToDeps => m_Manifest.BundleToDeps;
@@ -553,18 +552,18 @@ namespace Saro.MoonAsset
             bundle.DecreaseRefCount();
         }
 
-        private void UnloadDependencies(BundleRequest handle)
+        private void UnloadDependencies(BundleRequest request)
         {
-            for (var i = 0; i < handle.Dependencies.Count; i++)
+            for (var i = 0; i < request.Dependencies.Count; i++)
             {
-                var depHandle = handle.Dependencies[i];
-                depHandle.DecreaseRefCount();
+                var depRequest = request.Dependencies[i];
+                depRequest.DecreaseRefCount();
             }
 
-            handle.Dependencies.Clear();
+            request.Dependencies.Clear();
         }
 
-        private void LoadDependenciesAsync(BundleRequest handle, string assetBundleName)
+        private void LoadDependenciesAsync(BundleRequest request, string assetBundleName)
         {
             var dependencies = GetBundleDependencies(assetBundleName);
             if (dependencies == null || dependencies.Length <= 0)
@@ -573,7 +572,7 @@ namespace Saro.MoonAsset
             for (var i = 0; i < dependencies.Length; i++)
             {
                 var depRef = dependencies[i];
-                handle.Dependencies.Add(LoadBundleAsync(depRef.name));
+                request.Dependencies.Add(LoadBundleAsync(depRef.name));
             }
         }
 
@@ -587,18 +586,18 @@ namespace Saro.MoonAsset
 
             bool exists = TryGetAssetPath(assetBundleName, out var bundlePath, out var remoteAssets);
 
-            if (m_BundleHandleMap.TryGetValue(bundlePath, out var handle))
+            if (m_BundleRequestMap.TryGetValue(bundlePath, out var request))
             {
-                handle.Update();
-                handle.IncreaseRefCount();
-                return handle;
+                request.Update();
+                request.IncreaseRefCount();
+                return request;
             }
 
             if (!exists)
             {
                 if (remoteAssets != null) // 如果能获取到远端资源信息，就尝试去下载
                 {
-                    handle = new BundleRequest_Remote
+                    request = new BundleRequest_Remote
                     {
                         Info = new DownloadInfo
                         {
@@ -615,88 +614,88 @@ namespace Saro.MoonAsset
                 }
             }
 
-            if (handle == null)
+            if (request == null)
             {
                 if (FileUtility.IsHttpFile(bundlePath)) // http 使用 unitywebrequest 加载ab
                 {
-                    handle = new BundleRequest_UWR();
+                    request = new BundleRequest_UWR();
                 }
                 else
                 {
-                    handle = new BundleRequest_Local();
+                    request = new BundleRequest_Local();
                 }
             }
 
-            handle.AssetUrl = bundlePath;
-            handle.MoonAsset = this;
+            request.AssetUrl = bundlePath;
+            request.MoonAsset = this;
 
-            m_BundleHandleMap.Add(bundlePath, handle);
+            m_BundleRequestMap.Add(bundlePath, request);
 
             if (MaxBundlesPerFrame > 0
-                && m_LoadingAssetHandles.Count >= MaxBundlesPerFrame
-                && (handle is BundleRequest_Local || handle is BundleRequest_Remote))
+                && m_LoadingRequests.Count >= MaxBundlesPerFrame
+                && (request is BundleRequest_Local || request is BundleRequest_Remote))
             {
                 // 当前异步加载的bundle超过 配置上限，加到待加载队列里去
-                m_PendingBundleHandles.Enqueue(handle);
+                m_PendingBundleRequests.Enqueue(request);
             }
             else
             {
-                handle.Load();
-                m_LoadingBundleHandles.Add(handle);
-                INFO($"{handle.GetType().Name}: {handle.AssetUrl}");
+                request.Load();
+                m_LoadingBundleRequests.Add(request);
+                INFO($"{request.GetType().Name}: {request.AssetUrl}");
             }
 
-            LoadDependenciesAsync(handle, assetBundleName);
+            LoadDependenciesAsync(request, assetBundleName);
 
-            handle.IncreaseRefCount();
-            __AnalyzeHandle(handle);
-            return handle;
+            request.IncreaseRefCount();
+            __AnalyzeRequest(request);
+            return request;
         }
 
         private void UpdateBundles(bool unloadAllObjects = true)
         {
-            if (m_PendingBundleHandles.Count > 0 &&
+            if (m_PendingBundleRequests.Count > 0 &&
                  MaxBundlesPerFrame > 0 &&
-                 m_LoadingBundleHandles.Count < MaxBundlesPerFrame
+                 m_LoadingBundleRequests.Count < MaxBundlesPerFrame
                 )
             {
-                var toLoadCount = Math.Min(MaxBundlesPerFrame - m_LoadingBundleHandles.Count,
-                    m_PendingBundleHandles.Count);
+                var toLoadCount = Math.Min(MaxBundlesPerFrame - m_LoadingBundleRequests.Count,
+                    m_PendingBundleRequests.Count);
                 while (toLoadCount > 0)
                 {
-                    var handle = m_PendingBundleHandles.Dequeue();
-                    if (handle.LoadState == ELoadState.Init)
+                    var request = m_PendingBundleRequests.Dequeue();
+                    if (request.LoadState == ELoadState.Init)
                     {
-                        handle.Load();
-                        INFO("LoadBundle: " + handle.AssetUrl);
-                        m_LoadingBundleHandles.Add(handle);
+                        request.Load();
+                        INFO("LoadBundle: " + request.AssetUrl);
+                        m_LoadingBundleRequests.Add(request);
                     }
 
                     toLoadCount--;
                 }
             }
 
-            for (var i = 0; i < m_LoadingBundleHandles.Count; i++)
+            for (var i = 0; i < m_LoadingBundleRequests.Count; i++)
             {
-                var handle = m_LoadingBundleHandles[i];
-                if (handle.Update())
+                var request = m_LoadingBundleRequests[i];
+                if (request.Update())
                     continue;
-                m_LoadingBundleHandles.RemoveAt(i--);
+                m_LoadingBundleRequests.RemoveAt(i--);
             }
 
             // unload bundles
-            if (m_UnusedBundleHandles.Count > 0)
+            if (m_UnusedBundleRequests.Count > 0)
             {
-                for (var i = 0; i < m_UnusedBundleHandles.Count; i++)
+                for (var i = 0; i < m_UnusedBundleRequests.Count; i++)
                 {
-                    var handle = m_UnusedBundleHandles[i];
-                    if (!handle.IsDone) continue;
+                    var request = m_UnusedBundleRequests[i];
+                    if (!request.IsDone) continue;
 
-                    UnloadDependencies(handle);
+                    UnloadDependencies(request);
 
-                    handle.Unload(unloadAllObjects);
-                    INFO($"UnloadBundle: {handle.AssetUrl} unloadAllObjects: {unloadAllObjects}");
-                    m_UnusedBundleHandles.RemoveAt(i--);
+                    request.Unload(unloadAllObjects);
+                    INFO($"UnloadBundle: {request.AssetUrl} unloadAllObjects: {unloadAllObjects}");
+                    m_UnusedBundleRequests.RemoveAt(i--);
                 }
             }
         }
@@ -712,7 +711,7 @@ namespace Saro.MoonAsset
 #endif
 
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        private void __AnalyzeHandle(IAssetHandle handle)
+        private void __AnalyzeRequest(IAssetHandle handle)
         {
 #if UNITY_EDITOR
             if (!AnalyzeHandles.TryGetValue(handle.AssetUrl, out var list))

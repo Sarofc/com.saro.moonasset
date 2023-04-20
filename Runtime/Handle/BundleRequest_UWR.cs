@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 namespace Saro.MoonAsset
 {
     /// <summary>
+    /// TODO 这个也要测试下
+    /// 
     /// 直接加载远端的assetbundle，使用UnityWebRequestAssetBundle，针对webgl
     /// </summary>
     public class BundleRequest_UWR : BundleRequest
@@ -56,14 +58,13 @@ namespace Saro.MoonAsset
             Bundle = null;
         }
 
-        // TODO 这个也要测试下
         public override void WaitForCompletion()
         {
             InvokeWaitForCompletion();
 
 #if DEBUG
             if (!IsDone)
-                MoonAsset.ERROR("WaitForCompletion fata error");
+                MoonAsset.ERROR("WaitForCompletion fatal error");
 #endif
         }
     }
