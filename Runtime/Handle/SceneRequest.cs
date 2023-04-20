@@ -1,34 +1,44 @@
 ﻿using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Saro.MoonAsset
 {
-    public class SceneAssetAsyncHandle : SceneAssetHandle
+    public class SceneRequest : Request
     {
         private AsyncOperation m_AsyncOperation;
 
-        public SceneAssetAsyncHandle(string path, bool additive)
-            : base(path, additive)
-        { }
+        protected readonly LoadSceneMode m_LoadSceneMode;
+        protected readonly string m_SceneName;
+        protected string m_AssetBundleName;
+        protected BundleRequest m_BundleRequest;
+
+        public SceneRequest(string path, bool additive)
+        {
+            AssetUrl = path;
+            MoonAsset.Current.GetAssetBundleName(path, out m_AssetBundleName, out _);
+            m_SceneName = Path.GetFileNameWithoutExtension(AssetUrl);
+            m_LoadSceneMode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
+        }
 
         public override float Progress
         {
             get
             {
-                if (m_Handle == null)
+                if (m_BundleRequest == null)
                     return m_AsyncOperation == null ? 0 : m_AsyncOperation.progress;
 
-                var bundleProgress = m_Handle.Progress;
-                if (m_Handle.Dependencies.Count <= 0)
+                var bundleProgress = m_BundleRequest.Progress;
+                if (m_BundleRequest.Dependencies.Count <= 0)
                     return bundleProgress * 0.3f + (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
-                for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                for (int i = 0, max = m_BundleRequest.Dependencies.Count; i < max; i++)
                 {
-                    var item = m_Handle.Dependencies[i];
+                    var item = m_BundleRequest.Dependencies[i];
                     bundleProgress += item.Progress;
                 }
 
-                return bundleProgress / (m_Handle.Dependencies.Count + 1) * 0.3f +
+                return bundleProgress / (m_BundleRequest.Dependencies.Count + 1) * 0.3f +
                        (m_AsyncOperation != null ? m_AsyncOperation.progress * 0.7f : 0);
             }
         }
@@ -43,28 +53,28 @@ namespace Saro.MoonAsset
                         return true;
                     case ELoadState.LoadAssetBundle:
                         {
-                            if (m_Handle == null || m_Handle.IsError)
+                            if (m_BundleRequest == null || m_BundleRequest.IsError)
                             {
-                                Error = $"loadscene failed. url: {m_Handle.AssetUrl} error: {m_Handle.Error}";
+                                Error = $"[{nameof(SceneRequest)}] loadscene failed. url: {m_BundleRequest.AssetUrl} error: {m_BundleRequest.Error}";
                                 return true;
                             }
 
-                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_BundleRequest.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_Handle.Dependencies[i];
+                                var item = m_BundleRequest.Dependencies[i];
                                 if (item == null || item.IsError)
                                 {
-                                    Error = $"load dependencies failed. url: {item.AssetUrl} error: {item.Error}";
+                                    Error = $"[{nameof(SceneRequest)}] load dependencies failed. url: {item.AssetUrl} error: {item.Error}";
                                     return true;
                                 }
                             }
 
-                            if (!m_Handle.IsDone)
+                            if (!m_BundleRequest.IsDone)
                                 return false;
 
-                            for (int i = 0, max = m_Handle.Dependencies.Count; i < max; i++)
+                            for (int i = 0, max = m_BundleRequest.Dependencies.Count; i < max; i++)
                             {
-                                var item = m_Handle.Dependencies[i];
+                                var item = m_BundleRequest.Dependencies[i];
                                 if (!item.IsDone)
                                     return false;
                             }
@@ -109,7 +119,7 @@ namespace Saro.MoonAsset
         {
             if (!string.IsNullOrEmpty(m_AssetBundleName))
             {
-                m_Handle = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
+                m_BundleRequest = MoonAsset.Current.LoadBundleAsync(m_AssetBundleName);
                 LoadState = ELoadState.LoadAssetBundle;
             }
             else // editoronly
@@ -120,8 +130,23 @@ namespace Saro.MoonAsset
 
         internal override void Unload(bool unloadAllObjects = true)
         {
-            base.Unload(unloadAllObjects);
+            if (m_BundleRequest != null)
+                m_BundleRequest.DecreaseRefCount();
+
+            if (m_LoadSceneMode == LoadSceneMode.Additive)
+            {
+                if (SceneManager.GetSceneByName(m_SceneName).isLoaded)
+                    SceneManager.UnloadSceneAsync(m_SceneName);
+            }
+
+            m_BundleRequest = null;
+
             m_AsyncOperation = null;
+        }
+
+        public override void WaitForCompletion()
+        {
+            throw new NotSupportedException($"[MoonAsset] scene only support async load");
         }
     }
 }

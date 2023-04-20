@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Saro.MoonAsset
@@ -32,35 +33,35 @@ namespace Saro.MoonAsset
 
             foreach (var handle in moonAsset.m_LoadingAssetHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
                 GUILayout.HorizontalSlider(handle.Progress, 0f, 1f);
             }
 
             foreach (var handle in moonAsset.m_UnusedAssetHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
             }
 
             foreach (var handle in moonAsset.m_SceneHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
                 GUILayout.HorizontalSlider(handle.Progress, 0f, 1f);
             }
 
             foreach (var handle in moonAsset.m_LoadingBundleHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
                 GUILayout.HorizontalSlider(handle.Progress, 0f, 1f);
             }
 
             foreach (var handle in moonAsset.m_PendingBundleHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
             }
 
             foreach (var handle in moonAsset.m_UnusedBundleHandles)
             {
-                GUILayout.Label($"{handle.GetType().Name}: {handle.AssetUrl}");
+                GUILayout.Label($"{handle.GetType().Name}: {Path.GetFileName(handle.AssetUrl)}");
             }
 
             GUILayout.EndScrollView();

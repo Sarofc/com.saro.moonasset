@@ -41,7 +41,7 @@ namespace Saro.MoonAsset.Update
         }
 
         public IUpdater Listener { get; set; }
-        public bool IsComplete => m_Step == EStep.UpdateSuccess;
+        public bool IsDone => m_Step == EStep.UpdateSuccess;
 
         private EStep m_Step;
         private NetworkMonitorComponent m_NetworkMonitor;

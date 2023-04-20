@@ -16,19 +16,19 @@ namespace Saro.MoonAsset
         public void AddDefaultLocators()
         {
             // 4.都没有就下载到dlc目录，再加载
-            AddBundleLocator(new RemoteBundleLocator(MoonAssetConfig.k_DlcPath));
+            AddBundleLocator(new BundleLocator_Remote(MoonAssetConfig.k_DlcPath));
 
             // 3.再加载base目录
-            AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_BasePath));
+            AddBundleLocator(new BundleLocator_Local(MoonAssetConfig.k_BasePath));
 
             // 2.先加载dlc目录
-            AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_DlcPath));
+            AddBundleLocator(new BundleLocator_Local(MoonAssetConfig.k_DlcPath));
 
 #if UNITY_EDITOR
             // 1. 模拟模式，优先加载打包目录
             if (s_Mode == EMode.Simulate)
             {
-                AddBundleLocator(new LocalBundleLocator(MoonAssetConfig.k_Editor_DlcOutputPath));
+                AddBundleLocator(new BundleLocator_Local(MoonAssetConfig.k_Editor_DlcOutputPath));
             }
 
             // 0. 编辑器模式，使用AssetDataBase，不使用bundle

@@ -179,5 +179,10 @@ namespace Saro.MoonAsset
                     return null;
             }
         }
+
+        internal static bool PlatformUsesMultiThreading(RuntimePlatform platform)
+        {
+            return platform != RuntimePlatform.WebGLPlayer;
+        }
     }
 }

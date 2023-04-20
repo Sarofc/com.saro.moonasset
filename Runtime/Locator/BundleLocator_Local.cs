@@ -2,9 +2,9 @@
 
 namespace Saro.MoonAsset
 {
-    public sealed class LocalBundleLocator : BundleLocatorBase
+    public sealed class BundleLocator_Local : BundleLocatorBase
     {
-        public LocalBundleLocator(string directory) : base(directory)
+        public BundleLocator_Local(string directory) : base(directory)
         {
         }
 

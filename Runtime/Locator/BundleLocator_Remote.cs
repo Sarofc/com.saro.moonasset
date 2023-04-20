@@ -3,9 +3,9 @@
     /// <summary>
     /// 定位远端资源，永远返回false
     /// </summary>
-    public sealed class RemoteBundleLocator : BundleLocatorBase
+    public sealed class BundleLocator_Remote : BundleLocatorBase
     {
-        public RemoteBundleLocator(string directory) : base(directory)
+        public BundleLocator_Remote(string directory) : base(directory)
         {
         }
 
