@@ -44,8 +44,8 @@ namespace Saro.MoonAsset
 
         internal override void Load()
         {
-            const float timeout = 0.02f;
-            m_LoadTime = Time.realtimeSinceStartup + timeout;
+            const float delay = 0.01f; // 如果觉得卡，就调小一点
+            m_LoadTime = Time.realtimeSinceStartup + delay;
 
 #if !UNITY_EDITOR
             LogError();

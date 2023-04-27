@@ -445,7 +445,7 @@ namespace Saro.MoonAsset.Build
 
         /*
          *
-         * sbp模式，只打了 atlas，且勾选include，sprite散图不打进ab，首包场景里没有引用图集的散图，结果只有 ab 里有一张图集，没有散图，此结果是正确的。
+         * sbp模式，只打了 atlas，且勾选include，sprite散图不打进ab，且首包场景里没有引用图集的散图，结果只有 ab 里有一张图集，没有散图，此结果是正确的。
          *
          * 1. 由于散图不参与打包，且上层逻辑希望直接通过散图路径加载，所以需要包装一层，见SpriteAtlasRef。
          * 2. 多个预制体，引用一个图集，也是没问题的。

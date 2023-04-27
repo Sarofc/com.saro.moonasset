@@ -97,9 +97,6 @@ namespace Saro.MoonAsset.Build
             if (targetAppName == null)
                 return;
 
-            // 配置宏定义
-            //var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
-
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = builtInScenes,
@@ -119,20 +116,11 @@ namespace Saro.MoonAsset.Build
             }
 
             BuildPipeline.BuildPlayer(buildPlayerOptions);
-
-            //EndOverrideSymbols(overrideSymbols, originalSymbols);
-
-            //Utility.OpenFolderUtility.OpenDirectory(outputFolder);
-            //MoonAsset.ERROR("Open Folder: " + outputFolder);
         }
 
         public static void BuildAssetBundles()
         {
-            //var (overrideSymbols, originalSymbols) = BeginOverrideSymbols();
-
             BuildAssetBundles_SBP();
-
-            //EndOverrideSymbols(overrideSymbols, originalSymbols);
         }
 
         public static void AppendBundleHash()
@@ -221,9 +209,7 @@ namespace Saro.MoonAsset.Build
                 allBundles.Add(item.bundle);
 
             for (int index = 0; index < allBundles.Count; index++)
-            {
                 bundle2Ids[allBundles[index]] = index;
-            }
 
             var bundleRefs = new List<BundleRef>(allBundles.Count);
             for (var index = 0; index < allBundles.Count; index++)
@@ -341,25 +327,17 @@ namespace Saro.MoonAsset.Build
             string name = PlayerSettings.productName;
             string version = "v" + Application.version + "." + GetBuildGroups().resVersion;
 
-            switch (target)
+            switch (target) // TODO 需要测试ios、osx，等其他平台
             {
                 case BuildTarget.Android:
-                    return string.Format("{0}-{1}.apk", name, version);
-
+                    return string.Format($"{name}-{version}{(EditorUserBuildSettings.buildAppBundle ? ".aap" : ".apk")}");
                 case BuildTarget.StandaloneWindows:
                 case BuildTarget.StandaloneWindows64:
-                    return string.Format("{1}/{0}.exe", name, version);
-                case BuildTarget.WebGL:
-                    return string.Format("{1}/{0}", name, version);
-                //case BuildTarget.StandaloneOSX:
-                //case BuildTarget.iOS:
-                //case BuildTarget.WebGL:
-                //    return "";
-
-                // Add more build targets for your own.
+                    return string.Format($"{version}/{name}.exe");
+                case BuildTarget.StandaloneOSX:
+                    return string.Format($"{version}/{name}.app");
                 default:
-                    MoonAsset.ERROR("Target not implemented.");
-                    return null;
+                    return string.Format($"{version}/{name}");
             }
         }
 
@@ -371,9 +349,7 @@ namespace Saro.MoonAsset.Build
                 asset = ScriptableObject.CreateInstance<T>();
                 var dir = Path.GetDirectoryName(path);
                 if (!Directory.Exists(dir))
-                {
                     Directory.CreateDirectory(dir);
-                }
                 AssetDatabase.CreateAsset(asset, path);
                 AssetDatabase.SaveAssets();
             }
@@ -382,18 +358,12 @@ namespace Saro.MoonAsset.Build
         }
 
         public static Manifest GetManifest()
-        {
-            return GetAsset<Manifest>(MoonAssetConfig.k_Editor_ManifestAssetPath);
-        }
+            => GetAsset<Manifest>(MoonAssetConfig.k_Editor_ManifestAssetPath);
 
         internal static BuildGroups GetBuildGroups()
-        {
-            return GetAsset<BuildGroups>(MoonAssetConfig.k_Editor_BuildGroupsPath);
-        }
+            => GetAsset<BuildGroups>(MoonAssetConfig.k_Editor_BuildGroupsPath);
 
         internal static Settings GetSettings()
-        {
-            return GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
-        }
+            => GetAsset<Settings>(MoonAssetConfig.k_Editor_SettingsPath);
     }
 }

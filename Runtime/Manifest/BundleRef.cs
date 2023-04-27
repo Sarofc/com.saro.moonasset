@@ -31,8 +31,6 @@ namespace Saro.MoonAsset
 
         long IRemoteAssets.Size => size;
 
-        long IRemoteAssets.CompressSize => 0L; // assetbundle 不实现压缩，assetbundle自己管理吧
-
         string IRemoteAssets.Hash => hash;
     }
 }
