@@ -1,6 +1,6 @@
-﻿using Saro.Pool;
+﻿using Sirenix.OdinInspector;
+using Saro.Pool;
 using Saro.Utility;
-using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,8 +29,8 @@ namespace Saro.MoonAsset.Build
         [Tooltip("在asset名字后面，补上文件hash，避免cdn缓存问题")]
         public bool appendAssetHash = true;
 
-        [Tooltip("不被打包的资源，全小写")]
-        public List<string> excludeAssets = new List<string>()
+        [Tooltip("排除打包的文件类型，全小写")]
+        public List<string> excludeAssets = new()
         {
             ".meta",
             ".dll",
@@ -42,6 +42,13 @@ namespace Saro.MoonAsset.Build
 
             //".spriteatlas",
             //".spriteatlasv2",
+        };
+
+        [FolderPath]
+        [Tooltip("排除打包的文件夹，里面所有文件都不参与打包")]
+        public List<string> excludeFolders = new()
+        {
+
         };
 
         [Tooltip("构建的版本号")]
@@ -142,22 +149,40 @@ namespace Saro.MoonAsset.Build
             // unity资源只有 assets/ packages/ 这俩目录可以被打包
             if (!(asset.StartsWith("Assets/") || asset.StartsWith("Packages/")))
             {
-                Debug.LogError($"invalid asset: {asset}");
+                Log.ERROR($"invalid asset: {asset}");
                 return false;
             }
 
-            // 文件夹也跳过
+            // 跳过文件夹
             if (Directory.Exists(asset)) return false;
 
-            //var fileName = Path.GetFileName(asset).ToLower();
-            var fileName = Path.GetFileName(asset);
+            // 检测Editor文件夹下的资源
+            // AssetDatabase.GetDependencies(pathNames, true) 会返回所有依赖的资源，甚至包括cs文件的icon
+            if (asset.Contains("/Editor/"))
+            {
+                Log.WARN($"exclude '/Editor/' asset: {asset}");
+                return false;
+            }
 
             var buildGroups = BuildScript.GetBuildGroups();
-            var excludeAssets = buildGroups.excludeAssets;
-            foreach (var item in excludeAssets)
+
+            // 排除文件夹
+            foreach (var item in buildGroups.excludeFolders)
+            {
+                if (asset.StartsWith(item, StringComparison.Ordinal))
+                {
+                    //Log.WARN($"exclude asset: {asset}");
+                    return false;
+                }
+            }
+
+            // 排除文件类型
+            var fileName = Path.GetFileName(asset);
+            foreach (var item in buildGroups.excludeAssets)
             {
                 if (fileName.EndsWith(item, StringComparison.OrdinalIgnoreCase))
                 {
+                    //Log.WARN($"exclude asset: {asset}");
                     return false;
                 }
             }

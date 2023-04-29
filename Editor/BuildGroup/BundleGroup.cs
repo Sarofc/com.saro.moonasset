@@ -122,7 +122,7 @@ namespace Saro.MoonAsset.Build
             var patterns = searchPattern.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             if (!Directory.Exists(searchPath))
             {
-                Debug.LogError("Rule searchPath not exist:" + searchPath);
+                Log.ERROR("Rule searchPath not exist:" + searchPath);
                 return new string[0];
             }
 
