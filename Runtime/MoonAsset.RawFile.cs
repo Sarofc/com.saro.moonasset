@@ -19,19 +19,20 @@ namespace Saro.MoonAsset
                 }
             }
 
-            ERROR($"RawFile not found in manifest : {assetName}");
+            ERROR($"RawFile not found: {assetName}");
             return null;
         }
 
         public async UniTask<byte[]> GetRawFileBytesAsync(string assetName)
         {
             var fullPath = await GetRawFilePathAsync(assetName);
-            INFO($"GetRawFileAsync 0: {fullPath}");
+            //INFO($"GetRawFileAsync 0: {fullPath}");
             if (!string.IsNullOrEmpty(fullPath))
             {
-                INFO($"GetRawFileAsync 1: {fullPath}");
+                //INFO($"GetRawFileAsync 1: {fullPath}");
                 return await FileUtility.ReadAllBytesAsync(fullPath);
             }
+            ERROR($"RawFile not found: {assetName}");
             return null;
         }
 
@@ -50,6 +51,14 @@ namespace Saro.MoonAsset
         public async UniTask<string> GetRawFilePathAsync(string assetName)
         {
             INFO($"<color=green>CheckRawBundlesAsync</color>: {assetName}");
+
+#if UNITY_EDITOR
+            if (MoonAsset.s_Mode == EMode.AssetDatabase)
+            {
+                //INFO("RawFile Mode AssetDatabase. also need PackVFile");
+                return assetName;
+            }
+#endif
 
             if (!TryGetAssetToBundle(assetName, out var bundle))
             {

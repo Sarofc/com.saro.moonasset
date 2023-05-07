@@ -27,7 +27,7 @@ namespace Saro.MoonAsset.Update
      * 3.弱网环境测试
      *
      */
-    public sealed class AssetUpdaterManager : IService, IUpdater, INetworkMonitorListener
+    public sealed class AssetUpdaterManager : IService, IServiceAwake, IServiceUpdate, IDisposable, IUpdater, INetworkMonitorListener
     {
         private enum EStep
         {
@@ -53,7 +53,7 @@ namespace Saro.MoonAsset.Update
         /// </summary>
         private bool m_ManifestVersionSame = true;
 
-        void IService.Awake()
+        void IServiceAwake.Awake()
         {
             Downloader.s_GlobalCompleted += VerifyCallback;
 
@@ -66,11 +66,11 @@ namespace Saro.MoonAsset.Update
             Main.onApplicationFocus += OnApplicationFocus;
         }
 
-        void IService.Update()
+        void IServiceUpdate.Update()
         {
         }
 
-        void IService.Dispose()
+        void IDisposable.Dispose()
         {
             Downloader.s_GlobalCompleted -= VerifyCallback;
 

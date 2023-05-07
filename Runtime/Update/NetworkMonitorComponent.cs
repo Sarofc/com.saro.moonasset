@@ -7,7 +7,7 @@ namespace Saro.MoonAsset.Update
         void OnReachablityChanged(NetworkReachability reachability);
     }
 
-    public class NetworkMonitorComponent : IService
+    public class NetworkMonitorComponent : IService, IServiceAwake, IServiceUpdate
     {
         public INetworkMonitorListener Listener { get; set; }
 
@@ -27,13 +27,13 @@ namespace Saro.MoonAsset.Update
             m_Started = false;
         }
 
-        void IService.Awake()
+        void IServiceAwake.Awake()
         {
             m_Reachability = Application.internetReachability;
             Restart();
         }
 
-        void IService.Update()
+        void IServiceUpdate.Update()
         {
             if (m_Started && Time.timeSinceLevelLoad - m_Time >= m_SampleTime)
             {
@@ -48,10 +48,6 @@ namespace Saro.MoonAsset.Update
                 }
                 m_Time = Time.timeSinceLevelLoad;
             }
-        }
-
-        void IService.Dispose()
-        {
         }
     }
 }

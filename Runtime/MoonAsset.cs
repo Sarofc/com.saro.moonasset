@@ -25,7 +25,7 @@ namespace Saro.MoonAsset
      *
      */
 
-    public sealed partial class MoonAsset : IAssetManager
+    public sealed partial class MoonAsset : IAssetManager, IServiceAwake, IServiceUpdate, IDisposable
     {
         public Action<string, bool> OnLoadRemoteAsset { get; set; }
 
@@ -93,7 +93,7 @@ namespace Saro.MoonAsset
 
         #region Service Impl
 
-        void IService.Update()
+        void IServiceUpdate.Update()
         {
             //UnityEngine.Profiling.Profiler.BeginSample("[MoonAsset] UpdateAssets");
             UpdateAssets();
@@ -108,9 +108,9 @@ namespace Saro.MoonAsset
             //UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        void IService.Awake() { }
+        void IServiceAwake.Awake() { }
 
-        void IService.Dispose() { }
+        void IDisposable.Dispose() { }
 
         #endregion
 
